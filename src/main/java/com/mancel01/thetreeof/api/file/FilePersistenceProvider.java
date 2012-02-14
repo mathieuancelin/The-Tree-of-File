@@ -1,7 +1,9 @@
 package com.mancel01.thetreeof.api.file;
 
+import com.google.common.base.Joiner;
 import com.google.common.io.Files;
 import com.mancel01.thetreeof.Tree;
+import com.mancel01.thetreeof.api.Metadata;
 import com.mancel01.thetreeof.api.PersistenceProvider;
 import com.mancel01.thetreeof.model.Leaf;
 import com.mancel01.thetreeof.model.Node;
@@ -63,7 +65,10 @@ public class FilePersistenceProvider implements PersistenceProvider {
             config.set("name", leaf.getName());
             config.set("fullName", leaf.getFullName());
             config.set("blobId", leaf.getBlobId());
-            config.set("created", leaf.created().toString());       
+            config.set("created", leaf.created().toString()); 
+            config.set("changed", leaf.lastChanged().toString());
+            config.set("parent", leaf.getParent().getFullName());
+            config.set("metadata", Joiner.on(",").join(leaf.getMetadata()));
             config.persist();
         } catch (IOException ex) {
             ex.printStackTrace();

@@ -1,12 +1,14 @@
 package com.mancel01.thetreeof;
 
 import com.google.common.io.Files;
+import com.mancel01.thetreeof.model.Leaf;
 import com.mancel01.thetreeof.model.Node;
 import com.mancel01.thetreeof.visitor.PrintVisitor;
 import org.junit.Test;
 
 import static com.mancel01.thetreeof.model.Node.*;
 import static com.mancel01.thetreeof.model.Leaf.*;
+
 import java.io.File;
 
 
@@ -43,6 +45,11 @@ public class AppTest {
                 .back()
             .addChild(node("categ6"))
                 .back();
+        Leaf l = new Leaf("test", root, bytes);
+        l.addMetadata("key1", "value1")
+        .addMetadata("key2", "value2")
+        .addMetadata("key3", "value3");
+        root.addLeaf(l);
         Tree.instance().persist();
         root.visit(new PrintVisitor());
         Tree.instance().waitAndStop();

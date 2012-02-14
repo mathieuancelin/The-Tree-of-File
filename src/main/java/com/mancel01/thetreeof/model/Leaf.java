@@ -4,7 +4,9 @@ import com.mancel01.thetreeof.Tree;
 import com.mancel01.thetreeof.api.*;
 import com.mancel01.thetreeof.task.TaskExecutor;
 import com.mancel01.thetreeof.util.Registry;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 public class Leaf implements Persistable, Visitable<Leaf> {
@@ -16,7 +18,10 @@ public class Leaf implements Persistable, Visitable<Leaf> {
     private Node parent;
     private String fullName;
     private Date created = new Date();
-
+    private Date lastChanged = new Date();
+    private final List<Metadata<String, String>> metadata = 
+            new ArrayList<Metadata<String, String>>();
+    
     private String blob;
     
     public Leaf(String name, Node parent, final byte[] payload) {
@@ -60,10 +65,16 @@ public class Leaf implements Persistable, Visitable<Leaf> {
                 }
             });
         }
+        lastChanged = new Date();
+        persist();
     }
     
     public void changeName(final String name) {
-
+        this.name = name;
+        this.fullName = parent.getFullName() + Tree.PATH_SEPARATOR + name;
+        lastChanged = new Date();
+        // TODO : move files
+        persist();
     }
 
     void setName(String name) {
@@ -76,6 +87,19 @@ public class Leaf implements Persistable, Visitable<Leaf> {
 
     public Date created() {
         return created;
+    }
+
+    public Date lastChanged() {
+        return lastChanged;
+    }
+    
+    public Leaf addMetadata(String key, String value) {
+        metadata.add(new Metadata<String, String>(key, value));
+        return this;
+    }
+
+    public List<Metadata<String, String>> getMetadata() {
+        return metadata;
     }
 
     public byte[] getBlob() {

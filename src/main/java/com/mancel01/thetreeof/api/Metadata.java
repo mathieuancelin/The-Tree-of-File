@@ -1,10 +1,25 @@
 package com.mancel01.thetreeof.api;
 
-import com.mancel01.thetreeof.api.Persistable;
+public class Metadata<K, V> {
+    
+    private final K key;
+    private final V value;
 
-public class Metadata implements Persistable {
+    public Metadata(K key, V value) {
+        this.key = key;
+        this.value = value;
+    }
+
+    public K getKey() {
+        return key;
+    }
+
+    public V getValue() {
+        return value;
+    }
 
     @Override
-    public void persist() {
+    public String toString() {
+        return key + ";" + value;
     }
 }
