@@ -1,6 +1,8 @@
 package com.mancel01.thetreeof.task;
 
 import com.mancel01.thetreeof.api.Task;
+import com.mancel01.thetreeof.util.SimpleLogger;
+import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -33,7 +35,8 @@ public class TaskExecutor extends Thread {
     
     public static void stopTaskExecutor(TaskExecutor executor) {
         executor.stopExecutor();
-        exec.shutdownNow();
+        exec.shutdown();
+        //List<Runnable> runnables = exec.shutdownNow();
     }
 
     @Override
@@ -44,6 +47,7 @@ public class TaskExecutor extends Thread {
             waitIfMailboxIsEmpty();
             Task task = mailbox.poll();
             if (task != null) {
+                SimpleLogger.trace("Execute task : {}", task);
                 task.apply();
             }
         }
@@ -52,6 +56,7 @@ public class TaskExecutor extends Thread {
     
     public void addTask(Task task) {
         if (task != null) {
+            SimpleLogger.trace("New task waiting ... {}", task);
             mailbox.add(task);
             countRef.get().countDown();
         }
@@ -78,5 +83,9 @@ public class TaskExecutor extends Thread {
         } catch (InterruptedException ex) {
             //ex.printStackTrace();
         }
+    }
+    
+    public boolean isMailboxEmpty() {
+        return mailbox.isEmpty();
     }
 }

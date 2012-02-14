@@ -1,10 +1,9 @@
 package com.mancel01.thetreeof.model;
 
 import com.mancel01.thetreeof.Tree;
-import com.mancel01.thetreeof.api.Metadata;
-import com.mancel01.thetreeof.api.Persistable;
-import com.mancel01.thetreeof.api.Visitable;
-import com.mancel01.thetreeof.api.Visitor;
+import com.mancel01.thetreeof.api.*;
+import com.mancel01.thetreeof.model.Leaf.LeafCreator;
+import com.mancel01.thetreeof.util.SimpleLogger;
 import java.io.File;
 import java.util.*;
 
@@ -24,6 +23,7 @@ public class Node implements Persistable, Visitable<Node> {
         this.name = name;
         this.fullName = Tree.PATH_SEPARATOR + name;
         this.path = new File(root, name);
+        SimpleLogger.trace("create node {}", fullName);
     }
 
     public Node(String name, Node parent) {
@@ -31,6 +31,7 @@ public class Node implements Persistable, Visitable<Node> {
         this.name = name;
         this.fullName = parent.fullName + Tree.PATH_SEPARATOR + name;
         this.path = new File(parent.getPath(), name);
+        SimpleLogger.trace("create node {}", fullName);
     }
     
     @Override
@@ -52,6 +53,12 @@ public class Node implements Persistable, Visitable<Node> {
         return this;
     }
     
+    public Node addLeaf(LeafCreator c) {
+        Leaf leaf = c.create(this);
+        this.leafs.add(leaf);
+        return this;
+    }
+    
     public Node addLeafs(Collection<Leaf> leafs) {
         this.leafs.addAll(leafs);
         return this;
@@ -65,6 +72,17 @@ public class Node implements Persistable, Visitable<Node> {
     public Node addChild(Node node) {
         children.add(node);
         return this;
+    }
+    
+    /**
+     * 
+     * @param c
+     * @return WARNING return new node and not himself
+     */
+    public Node addChild(NodeCreator c) {
+        Node node = c.create(this);
+        children.add(node);
+        return node;
     }
     
     public Node addChilds(Collection<Node> nodes) {
@@ -93,6 +111,10 @@ public class Node implements Persistable, Visitable<Node> {
             l.addAll(node.leafs());
         }
         return l;
+    }
+    
+    public Node back() {
+        return getParent();
     }
 
     public Collection<Node> children() {
@@ -126,9 +148,32 @@ public class Node implements Persistable, Visitable<Node> {
 
     @Override
     public void visit(Visitor<Node> visitor) {
-        for (Node node : children) {
-            visitor.visiting(node);
+        if (parent == null) {
+            visitor.visiting(this);
         }
-        visitor.visiting(this);
+        for (Node node : children) {
+            node.visit(visitor);
+        }
+        if (parent != null) {
+            visitor.visiting(this);
+        }
+    }
+    
+    public static NodeCreator node(String name) {
+        return new NodeCreator(name);
+    }
+    
+    public static class NodeCreator implements Creator<Node> {
+
+        private final String name;
+
+        public NodeCreator(String name) {
+            this.name = name;
+        }
+        
+        @Override
+        public Node create(Node parent) {
+            return new Node(name, parent);
+        }
     }
 }

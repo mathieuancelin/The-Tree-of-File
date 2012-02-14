@@ -1,12 +1,9 @@
 package com.mancel01.thetreeof.model;
 
-import com.mancel01.thetreeof.api.Change;
-import com.google.common.io.Files;
 import com.mancel01.thetreeof.Tree;
 import com.mancel01.thetreeof.api.*;
-import com.mancel01.thetreeof.util.F;
-import java.io.File;
-import java.io.IOException;
+import com.mancel01.thetreeof.task.TaskExecutor;
+import com.mancel01.thetreeof.util.Registry;
 import java.util.UUID;
 
 public class Leaf implements Persistable, Visitable<Leaf> {
@@ -16,48 +13,55 @@ public class Leaf implements Persistable, Visitable<Leaf> {
     private final String uuid = UUID.randomUUID().toString();
     private String name;
     private Node parent;
-    private File path;
     private String fullName;
 
-    private File blob;
+    private String blob;
     
-    public Leaf(String name, Node parent) {
+    public Leaf(String name, Node parent, final byte[] payload) {
         this.name = name;
         this.fullName = parent.getFullName() + Tree.PATH_SEPARATOR + name;
         this.parent = parent;
-        this.path = new File(parent.getPath(), uuid);
-    }
-    
-    public Leaf(File b, Node parent) {
-        this.name = b.getName();
-        this.fullName = parent.getFullName() + Tree.PATH_SEPARATOR + name;
-        this.parent = parent;
-        this.path = new File(parent.getPath(), uuid);
+        if (payload != null) {
+            blob = UUID.randomUUID().toString(); 
+            for (TaskExecutor exec : Registry.optional(TaskExecutor.class)) {
+                exec.addTask(new Task() {
+                    @Override
+                    public void apply() {
+                        for (PersistenceProvider provider : Registry.optional(PersistenceProvider.class)) {
+                            provider.persistAsBlob(blob, payload);
+                        }
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "Persist initial blob for leaf " + uuid;
+                    }
+                });
+            }
+        }
     }
 
-    /**public Leaf setBlob(File blob) {
-        this.blob = blob;
-        return this;
-    }**/
-    
-    public void changeName(final String name) {
-        final Leaf leaf = this;
-        Task task = new Task() {
-            
-            Change<Leaf, String> change = new Change<Leaf, String>() {
+    public void changeBlob(final byte[] payload) {
+        blob = UUID.randomUUID().toString(); 
+        for (TaskExecutor exec : Registry.optional(TaskExecutor.class)) {
+            exec.addTask(new Task() {
+                @Override
+                public void apply() {
+                    for (PersistenceProvider provider : Registry.optional(PersistenceProvider.class)) {
+                        provider.persistAsBlob(blob, payload);
+                    }
+                }
 
                 @Override
-                public void applyChange(Leaf l, String name) {
-                    l.setName(name);
-                    l.persist();
+                public String toString() {
+                    return "Change blob for leaf " + uuid;
                 }
-            };
+            });
+        }
+    }
+    
+    public void changeName(final String name) {
 
-            @Override
-            public void apply() {
-                change.applyChange(leaf, name);
-            }
-        };
     }
 
     void setName(String name) {
@@ -67,29 +71,88 @@ public class Leaf implements Persistable, Visitable<Leaf> {
     public String getFullName() {
         return fullName;
     }
+
+    public byte[] getBlob() {
+        for (PersistenceProvider provider : Registry.optional(PersistenceProvider.class)) {
+            return provider.getBlob(blob);
+        }
+        return new byte[0];
+    }
+
+    public String getBlobId() {
+        return blob;
+    }
+    
+    public Leaf me() {
+        return this;
+    }
+
+    public String getName() {
+        return name;
+    }
     
     @Override
     public void persist() {
-        if (!path.exists()) {
-            path.mkdirs();
-        }
-        File metadata = new File(path, META_FILE_NAME);
-        try {
-            if (blob == null) {
-                blob = new File(path, name);
-                Files.touch(blob);
-            } else {
-                Files.copy(blob, new File(path, blob.getName()));
-            }
-            // TODO : persist meta
-            Files.touch(metadata);
-        } catch (IOException ex) {
-            throw new F.ExceptionWrapper(ex);
+        for (TaskExecutor exec : Registry.optional(TaskExecutor.class)) {
+            exec.addTask(new Task() {
+                @Override
+                public void apply() {
+                    for (PersistenceProvider provider : Registry.optional(PersistenceProvider.class)) {
+                        provider.persistLeaf(me());
+                    }
+                }
+
+                @Override
+                public String toString() {
+                    return "Create Leaf path and metadata for " + uuid;
+                }
+            });
         }
     }
 
     @Override
     public void visit(Visitor<Leaf> visitor) {
         visitor.visiting(this);
+    }
+    
+    public Node back() {
+        return getParent();
+    }
+
+    public Node getParent() {
+        return parent;
+    }
+
+    public String getUuid() {
+        return uuid;
+    }
+    
+    public static LeafCreator leaf(String name) {
+        return new LeafCreator(name);
+    }
+    
+    public static LeafCreator leaf(String name, byte[] bytes) {
+        return new LeafCreator(name, bytes);
+    }
+    
+    public static class LeafCreator implements Creator<Leaf> {
+
+        private final String name;
+        private final byte[] bytes;
+
+        public LeafCreator(String name, byte[] bytes) {
+            this.name = name;
+            this.bytes = bytes;
+        }
+        
+        public LeafCreator(String name) {
+            this.name = name;
+            this.bytes = new byte[0];
+        }
+        
+        @Override
+        public Leaf create(Node parent) {
+            return new Leaf(name, parent, bytes);
+        }
     }
 }

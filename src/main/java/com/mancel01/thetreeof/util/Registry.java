@@ -148,6 +148,17 @@ public class Registry {
             }
         };
     }
+    
+    public static <T> Option<T> optional(final Class<T> clazz) {
+        Key key = new Key(clazz, emptyProps);
+        if (!beans.containsKey(key)) {
+            return Option.none();
+        }
+        for (Bean b : beans.get(key).values()) {
+            return b.optional();
+        }
+        return Option.none();
+    }
 
     public static <T> T instance(Class<T> clazz) {
         Key key = new Key(clazz, emptyProps);

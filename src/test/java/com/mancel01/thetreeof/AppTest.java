@@ -1,27 +1,50 @@
 package com.mancel01.thetreeof;
 
-import com.mancel01.thetreeof.model.Leaf;
+import com.google.common.io.Files;
 import com.mancel01.thetreeof.model.Node;
 import com.mancel01.thetreeof.visitor.PrintVisitor;
-import java.io.File;
 import org.junit.Test;
+
+import static com.mancel01.thetreeof.model.Node.*;
+import static com.mancel01.thetreeof.model.Leaf.*;
+import java.io.File;
+
 
 public class AppTest {
 
     @Test
-    public void testApp() {
+    public void testApp() throws Exception {
         Node root = Tree.instance().root();
-        Node categ1 = new Node("categ1", root);
-        Node categ2 = new Node("categ2", root);
-        Leaf doc1 = new Leaf(new File("/Users/mathieuancelin/Desktop/mustache.java/nodetest.js"), categ1);
-        Leaf doc2 = new Leaf("doc2", categ1);
-        Leaf doc3 = new Leaf("doc3", categ2);
-        Leaf doc4 = new Leaf("doc4", categ2);
-        categ1.addLeafs(doc1, doc2);
-        categ2.addLeafs(doc3, doc4);
-        root.addChilds(categ1, categ2);
+        byte[] bytes = Files.toByteArray(new File("pom.xml"));
+        root.addChild(node("categ1"))
+                    .addLeaf(leaf("doc1", bytes))
+                    .addLeaf(leaf("doc2", bytes))
+                .back()
+            .addChild(
+                node("categ2"))
+                    .addLeaf(leaf("doc3", bytes))
+                    .addLeaf(leaf("doc4", bytes))
+                .back()
+            .addChild(node("categ3"))
+                .addChild(node("categ31"))
+                    .back()
+                .addChild(node("categ32"))
+                    .addChild(node("categ321"))
+                        .back()
+                    .back()
+                .addChild(node("categ33"))
+                    .back()
+                .addChild(node("categ34"))
+                    .back()
+                .back()
+            .addChild(node("categ4"))
+                .back()
+            .addChild(node("categ5"))
+                .back()
+            .addChild(node("categ6"))
+                .back();
         Tree.instance().persist();
-        PrintVisitor visitor = new PrintVisitor();
-        Tree.instance().root().visit(visitor);
+        root.visit(new PrintVisitor());
+        Tree.instance().waitAndStop();
     }
 }
