@@ -4,9 +4,11 @@ import com.mancel01.thetreeof.Tree;
 import com.mancel01.thetreeof.api.*;
 import com.mancel01.thetreeof.task.TaskExecutor;
 import com.mancel01.thetreeof.util.Registry;
-import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 public class Leaf implements Persistable, Visitable<Leaf> {
@@ -19,8 +21,8 @@ public class Leaf implements Persistable, Visitable<Leaf> {
     private String fullName;
     private Date created = new Date();
     private Date lastChanged = new Date();
-    private final List<Metadata<String, String>> metadata = 
-            new ArrayList<Metadata<String, String>>();
+    private final Map<String, Metadata<String, String>> metadata = 
+            new HashMap<String, Metadata<String, String>>();
     
     private String blob;
     
@@ -94,12 +96,29 @@ public class Leaf implements Persistable, Visitable<Leaf> {
     }
     
     public Leaf addMetadata(String key, String value) {
-        metadata.add(new Metadata<String, String>(key, value));
+        metadata.put(key, new Metadata<String, String>(key, value));
+        persist();
         return this;
     }
+    
+    public Leaf clearMetadata() {
+        metadata.clear();
+        persist();
+        return this;
+    }
+    
+    public Leaf removeMetadata(String key) {
+        metadata.remove(key);
+        persist();
+        return this;
+    }
+    
+    public Metadata<String, String> getMetadata(String key) {
+        return metadata.get(key);
+    }
 
-    public List<Metadata<String, String>> getMetadata() {
-        return metadata;
+    public Collection<Metadata<String, String>> getMetadata() {
+        return Collections.unmodifiableCollection(metadata.values());
     }
 
     public byte[] getBlob() {
