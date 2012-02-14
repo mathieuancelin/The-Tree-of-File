@@ -1,6 +1,7 @@
 package com.mancel01.thetreeof;
 
 import com.google.common.io.Files;
+import com.mancel01.thetreeof.api.Blob;
 import com.mancel01.thetreeof.model.Leaf;
 import com.mancel01.thetreeof.model.Node;
 import com.mancel01.thetreeof.visitor.PrintVisitor;
@@ -17,7 +18,14 @@ public class AppTest {
     @Test
     public void testApp() throws Exception {
         Node root = Tree.instance().root();
-        byte[] bytes = Files.toByteArray(new File("pom.xml"));
+        final byte[] b = Files.toByteArray(new File("pom.xml"));
+        Blob bytes = new Blob() {
+
+            @Override
+            public byte[] bytes() {
+                return b;
+            }
+        };
         root.addChild(node("categ1"))
                     .addLeaf(leaf("doc1", bytes))
                     .addLeaf(leaf("doc2", bytes))

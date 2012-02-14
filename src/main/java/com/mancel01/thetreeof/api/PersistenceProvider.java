@@ -7,9 +7,9 @@ public interface PersistenceProvider {
     
     public void createBlobStore();
     
-    public void persistAsBlob(String uuid, byte[] bytes);
+    public void persistAsBlob(String uuid, Blob blob);
     
-    public byte[] getBlob(String uuid);
+    public Blob getBlob(String uuid);
     
     public void persistLeaf(Leaf leaf);
     

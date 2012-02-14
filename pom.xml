@@ -4,11 +4,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.mancel01</groupId>
-    <artifactId>TheTreeOf</artifactId>
+    <artifactId>tree-of-file</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <name>TheTreeOf</name>
+    <name>The Tree Of File</name>
     
     <build>
         <plugins>

@@ -26,7 +26,7 @@ public class Leaf implements Persistable, Visitable<Leaf> {
     
     private String blob;
     
-    public Leaf(String name, Node parent, final byte[] payload) {
+    public Leaf(String name, Node parent, final Blob payload) {
         this.name = name;
         this.fullName = parent.getFullName() + Tree.PATH_SEPARATOR + name;
         this.parent = parent;
@@ -50,7 +50,7 @@ public class Leaf implements Persistable, Visitable<Leaf> {
         }
     }
 
-    public void changeBlob(final byte[] payload) {
+    public void changeBlob(final Blob payload) {
         blob = UUID.randomUUID().toString(); 
         for (TaskExecutor exec : Registry.optional(TaskExecutor.class)) {
             exec.addTask(new Task() {
@@ -121,11 +121,17 @@ public class Leaf implements Persistable, Visitable<Leaf> {
         return Collections.unmodifiableCollection(metadata.values());
     }
 
-    public byte[] getBlob() {
+    public Blob getBlob() {
         for (PersistenceProvider provider : Registry.optional(PersistenceProvider.class)) {
             return provider.getBlob(blob);
         }
-        return new byte[0];
+        return new Blob() {
+
+            @Override
+            public byte[] bytes() {
+                return new byte[0];
+            }
+        };
     }
 
     public String getBlobId() {
@@ -180,23 +186,29 @@ public class Leaf implements Persistable, Visitable<Leaf> {
         return new LeafCreator(name);
     }
     
-    public static LeafCreator leaf(String name, byte[] bytes) {
+    public static LeafCreator leaf(String name, Blob bytes) {
         return new LeafCreator(name, bytes);
     }
     
     public static class LeafCreator implements Creator<Leaf> {
 
         private final String name;
-        private final byte[] bytes;
+        private final Blob bytes;
 
-        public LeafCreator(String name, byte[] bytes) {
+        public LeafCreator(String name, Blob bytes) {
             this.name = name;
             this.bytes = bytes;
         }
         
         public LeafCreator(String name) {
             this.name = name;
-            this.bytes = new byte[0];
+            this.bytes = new Blob() {
+
+                @Override
+                public byte[] bytes() {
+                    return new byte[0];
+                }
+            };
         }
         
         @Override

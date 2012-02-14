@@ -3,7 +3,7 @@ package com.mancel01.thetreeof.api.file;
 import com.google.common.base.Joiner;
 import com.google.common.io.Files;
 import com.mancel01.thetreeof.Tree;
-import com.mancel01.thetreeof.api.Metadata;
+import com.mancel01.thetreeof.api.Blob;
 import com.mancel01.thetreeof.api.PersistenceProvider;
 import com.mancel01.thetreeof.model.Leaf;
 import com.mancel01.thetreeof.model.Node;
@@ -30,11 +30,11 @@ public class FilePersistenceProvider implements PersistenceProvider {
     }
 
     @Override
-    public void persistAsBlob(String uuid, byte[] bytes) {
+    public void persistAsBlob(String uuid, Blob bytes) {
         try {
             File blob = new File(blobStore, uuid);
             if (!blob.exists()) {
-                Files.write(bytes, blob);
+                Files.write(bytes.bytes(), blob);
             }
         } catch (IOException ex) {
             throw new F.ExceptionWrapper(ex);
@@ -42,10 +42,17 @@ public class FilePersistenceProvider implements PersistenceProvider {
     }
 
     @Override
-    public byte[] getBlob(String uuid) {
+    public Blob getBlob(String uuid) {
         try {
             File blob = new File(blobStore, uuid);
-            return Files.toByteArray(blob);
+            final byte[] bytes = Files.toByteArray(blob);
+            return new Blob() {
+
+                @Override
+                public byte[] bytes() {
+                    return bytes;
+                }
+            };
         } catch (IOException ex) {
             throw new F.ExceptionWrapper(ex);
         }

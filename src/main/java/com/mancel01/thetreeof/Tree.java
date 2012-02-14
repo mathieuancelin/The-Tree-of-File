@@ -97,11 +97,5 @@ public class Tree implements Persistable {
     }
     
     // TODO : Security visitor
-    // TODO : Async task for persist
-    // TODO : Blobs in separate folder
-    // TODO : Service registry
-    // TODO : Separate model from persitence
-    // TODO : Persistence provider
-    // TODO : File peristence provider
-    
+    // TODO : Security provider
 }
