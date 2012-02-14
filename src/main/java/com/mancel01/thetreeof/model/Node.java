@@ -3,8 +3,9 @@ package com.mancel01.thetreeof.model;
 import com.mancel01.thetreeof.Tree;
 import com.mancel01.thetreeof.api.*;
 import com.mancel01.thetreeof.model.Leaf.LeafCreator;
+import com.mancel01.thetreeof.task.TaskExecutor;
+import com.mancel01.thetreeof.util.Registry;
 import com.mancel01.thetreeof.util.SimpleLogger;
-import java.io.File;
 import java.util.*;
 
 public class Node implements Persistable, Visitable<Node> {
@@ -12,17 +13,14 @@ public class Node implements Persistable, Visitable<Node> {
     private final String uuid = UUID.randomUUID().toString();
     private String name;
     private final String fullName;
-    private File path;
-    private final Metadata metadata = new Metadata();
     private final Node parent;
     private final List<Node> children = Collections.synchronizedList(new ArrayList<Node>());
     private final List<Leaf> leafs = Collections.synchronizedList(new ArrayList<Leaf>());
 
-    public Node(String name, File root) {
+    public Node(String name) {
         this.parent = null;
         this.name = name;
         this.fullName = Tree.PATH_SEPARATOR + name;
-        this.path = new File(root, name);
         SimpleLogger.trace("create node {}", fullName);
     }
 
@@ -30,21 +28,29 @@ public class Node implements Persistable, Visitable<Node> {
         this.parent = parent;
         this.name = name;
         this.fullName = parent.fullName + Tree.PATH_SEPARATOR + name;
-        this.path = new File(parent.getPath(), name);
         SimpleLogger.trace("create node {}", fullName);
+    }
+    
+    public Node me() {
+        return this;
     }
     
     @Override
     public void persist() {
-        if (!path.exists()) {
-            path.mkdirs();
-        }
-        metadata.persist();
-        for (Node node : children) {
-            node.persist();
-        }
-        for (Leaf leaf : leafs) {
-            leaf.persist();
+        for (TaskExecutor exec : Registry.optional(TaskExecutor.class)) {
+            exec.addTask(new Task() {
+                @Override
+                public void apply() {
+                    for (PersistenceProvider provider : Registry.optional(PersistenceProvider.class)) {
+                        provider.persistNode(me());
+                    }
+                }
+
+                @Override
+                public String toString() {
+                    return "Persist initial for Node " + uuid;
+                }
+            });
         }
     }
     
@@ -136,10 +142,6 @@ public class Node implements Persistable, Visitable<Node> {
     public Node setName(String name) {
         this.name = name;
         return this;
-    }
-
-    public File getPath() {
-        return path;
     }
 
     public String getFullName() {

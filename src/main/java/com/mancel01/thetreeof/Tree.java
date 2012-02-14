@@ -29,7 +29,7 @@ public class Tree implements Persistable {
     private Tree() {
         config = new Configuration("config.properties");
         rootFile = new File(config.get("root").getOrElse("./repo"));
-        root = new Node("Root", rootFile);
+        root = new Node("Root");
         Registry.register(PersistenceProvider.class, new FilePersistenceProvider(rootFile));
         TaskExecutor.startTaskExecutor(exec);
         Registry.register(TaskExecutor.class, exec);

@@ -4,6 +4,7 @@ import com.google.common.io.Files;
 import com.mancel01.thetreeof.Tree;
 import com.mancel01.thetreeof.api.PersistenceProvider;
 import com.mancel01.thetreeof.model.Leaf;
+import com.mancel01.thetreeof.model.Node;
 import com.mancel01.thetreeof.util.Configuration;
 import com.mancel01.thetreeof.util.F;
 import java.io.File;
@@ -66,6 +67,25 @@ public class FilePersistenceProvider implements PersistenceProvider {
             config.persist();
         } catch (IOException ex) {
             ex.printStackTrace();
+        }
+    }
+
+    @Override
+    public void persistNode(Node node) {
+        File path = null;
+        if (node.getParent() == null) {
+            path = new File(Tree.instance().rootFile(), node.getName());
+        } else {
+            path = new File(Tree.instance().rootFile(), node.getParent().getFullName() + Tree.PATH_SEPARATOR + node.getName());
+        }
+        if (!path.exists()) {
+            path.mkdirs();
+        }
+        for (Node n : node.children()) {
+            n.persist();
+        }
+        for (Leaf leaf : node.leafs()) {
+            leaf.persist();
         }
     }
 }
