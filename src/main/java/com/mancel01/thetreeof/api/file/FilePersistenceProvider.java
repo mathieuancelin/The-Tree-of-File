@@ -4,6 +4,7 @@ import com.google.common.io.Files;
 import com.mancel01.thetreeof.Tree;
 import com.mancel01.thetreeof.api.PersistenceProvider;
 import com.mancel01.thetreeof.model.Leaf;
+import com.mancel01.thetreeof.util.Configuration;
 import com.mancel01.thetreeof.util.F;
 import java.io.File;
 import java.io.IOException;
@@ -49,15 +50,22 @@ public class FilePersistenceProvider implements PersistenceProvider {
 
     @Override
     public void persistLeaf(Leaf leaf) {
-        File path = new File(Tree.instance().rootFile(), leaf.getParent().getFullName() + Tree.PATH_SEPARATOR + leaf.getUuid());
-        if (!path.exists()) {
-            path.mkdirs();
-        }
         try {
-            final File metadata = new File(path, Leaf.META_FILE_NAME);
-            Files.touch(metadata);
+            File path = new File(Tree.instance().rootFile(), leaf.getParent().getFullName() + Tree.PATH_SEPARATOR + leaf.getUuid());
+            if (!path.exists()) {
+                path.mkdirs();
+            }
+            File metadata = new File(path, Leaf.META_FILE_NAME);
+            metadata.createNewFile();
+            Configuration config = new Configuration(metadata.getAbsolutePath());
+            config.set("uuid", leaf.getUuid());
+            config.set("name", leaf.getName());
+            config.set("fullName", leaf.getFullName());
+            config.set("blobId", leaf.getBlobId());
+            config.set("created", leaf.created().toString());       
+            config.persist();
         } catch (IOException ex) {
-            throw new F.ExceptionWrapper(ex);
+            ex.printStackTrace();
         }
     }
 }

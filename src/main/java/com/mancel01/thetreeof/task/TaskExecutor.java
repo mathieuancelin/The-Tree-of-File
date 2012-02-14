@@ -2,7 +2,6 @@ package com.mancel01.thetreeof.task;
 
 import com.mancel01.thetreeof.api.Task;
 import com.mancel01.thetreeof.util.SimpleLogger;
-import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -68,8 +67,15 @@ public class TaskExecutor extends Thread {
     }
 
     private void waitIfMailboxIsEmpty() {
-        if (mailbox.isEmpty()) {
-            setLatchAndWait();
+//        if (mailbox.isEmpty()) {
+//            setLatchAndWait();
+//        }
+        while(mailbox.isEmpty()) {
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException ex) {
+                ex.printStackTrace();
+            }
         }
     }
 

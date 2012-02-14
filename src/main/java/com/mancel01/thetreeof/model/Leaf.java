@@ -4,6 +4,7 @@ import com.mancel01.thetreeof.Tree;
 import com.mancel01.thetreeof.api.*;
 import com.mancel01.thetreeof.task.TaskExecutor;
 import com.mancel01.thetreeof.util.Registry;
+import java.util.Date;
 import java.util.UUID;
 
 public class Leaf implements Persistable, Visitable<Leaf> {
@@ -14,6 +15,7 @@ public class Leaf implements Persistable, Visitable<Leaf> {
     private String name;
     private Node parent;
     private String fullName;
+    private Date created = new Date();
 
     private String blob;
     
@@ -70,6 +72,10 @@ public class Leaf implements Persistable, Visitable<Leaf> {
 
     public String getFullName() {
         return fullName;
+    }
+
+    public Date created() {
+        return created;
     }
 
     public byte[] getBlob() {
