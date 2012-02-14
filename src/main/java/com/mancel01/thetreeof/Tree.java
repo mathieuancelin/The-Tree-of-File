@@ -2,7 +2,7 @@ package com.mancel01.thetreeof;
 
 import com.mancel01.thetreeof.api.Persistable;
 import com.mancel01.thetreeof.api.PersistenceProvider;
-import com.mancel01.thetreeof.api.file.FilePersistenceProvider;
+import com.mancel01.thetreeof.file.FilePersistenceProvider;
 import com.mancel01.thetreeof.model.Leaf;
 import com.mancel01.thetreeof.model.Node;
 import com.mancel01.thetreeof.task.TaskExecutor;

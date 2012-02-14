@@ -1,4 +1,4 @@
-package com.mancel01.thetreeof.api.file;
+package com.mancel01.thetreeof.file;
 
 import com.google.common.base.Joiner;
 import com.google.common.io.Files;
