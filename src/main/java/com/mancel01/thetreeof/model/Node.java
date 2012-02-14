@@ -65,6 +65,12 @@ public class Node implements Persistable, Visitable<Node> {
         return this;
     }
     
+    public Leaf addLeafAndSelect(LeafCreator c) {
+        Leaf leaf = c.create(this);
+        this.leafs.add(leaf);
+        return leaf;
+    }
+    
     public Node addLeafs(Collection<Leaf> leafs) {
         this.leafs.addAll(leafs);
         return this;
@@ -85,10 +91,16 @@ public class Node implements Persistable, Visitable<Node> {
      * @param c
      * @return WARNING return new node and not himself
      */
-    public Node addChild(NodeCreator c) {
+    public Node addChildAndSelect(NodeCreator c) {
         Node node = c.create(this);
         children.add(node);
         return node;
+    }
+    
+    public Node addChild(NodeCreator c) {
+        Node node = c.create(this);
+        children.add(node);
+        return this;
     }
     
     public Node addChilds(Collection<Node> nodes) {

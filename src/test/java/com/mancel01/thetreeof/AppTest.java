@@ -2,7 +2,6 @@ package com.mancel01.thetreeof;
 
 import com.google.common.io.Files;
 import com.mancel01.thetreeof.api.Blob;
-import com.mancel01.thetreeof.model.Leaf;
 import com.mancel01.thetreeof.model.Node;
 import com.mancel01.thetreeof.visitor.PrintVisitor;
 import org.junit.Test;
@@ -26,38 +25,40 @@ public class AppTest {
                 return b;
             }
         };
-        root.addChild(node("categ1"))
-                    .addLeaf(leaf("doc1", bytes))
+        root.addChildAndSelect(node("categ1"))
+                    .addLeafAndSelect(leaf("doc1", bytes))
+                            .addMetadata("key1", "value1")
+                            .addMetadata("key2", "value2")
+                            .addMetadata("key3", "value3")
+                        .back()
                     .addLeaf(leaf("doc2", bytes))
                 .back()
-            .addChild(
+            .addChildAndSelect(
                 node("categ2"))
                     .addLeaf(leaf("doc3", bytes))
-                    .addLeaf(leaf("doc4", bytes))
+                    .addLeafAndSelect(leaf("doc4", bytes))
+                            .addMetadata("key2", "value2")
+                            .addMetadata("key3", "value3")
+                        .back()
                 .back()
-            .addChild(node("categ3"))
-                .addChild(node("categ31"))
+            .addChildAndSelect(node("categ3"))
+                .addChildAndSelect(node("categ31"))
                     .back()
-                .addChild(node("categ32"))
-                    .addChild(node("categ321"))
+                .addChildAndSelect(node("categ32"))
+                    .addChildAndSelect(node("categ321"))
                         .back()
                     .back()
-                .addChild(node("categ33"))
+                .addChildAndSelect(node("categ33"))
                     .back()
-                .addChild(node("categ34"))
+                .addChildAndSelect(node("categ34"))
                     .back()
                 .back()
-            .addChild(node("categ4"))
+            .addChildAndSelect(node("categ4"))
                 .back()
-            .addChild(node("categ5"))
+            .addChildAndSelect(node("categ5"))
                 .back()
-            .addChild(node("categ6"))
+            .addChildAndSelect(node("categ6"))
                 .back();
-        Leaf l = new Leaf("test", root, bytes);
-        l.addMetadata("key1", "value1")
-        .addMetadata("key2", "value2")
-        .addMetadata("key3", "value3");
-        root.addLeaf(l);
         Tree.instance().persist();
         root.visit(new PrintVisitor());
         Tree.instance().waitAndStop();
