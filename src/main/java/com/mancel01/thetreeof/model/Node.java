@@ -4,7 +4,6 @@ import com.mancel01.thetreeof.Tree;
 import com.mancel01.thetreeof.api.*;
 import com.mancel01.thetreeof.model.Leaf.LeafCreator;
 import com.mancel01.thetreeof.task.TaskExecutor;
-import com.mancel01.thetreeof.util.Registry;
 import com.mancel01.thetreeof.util.SimpleLogger;
 import java.util.*;
 
@@ -45,11 +44,11 @@ public class Node implements Persistable, Visitable<Node> {
     
     @Override
     public void persist() {
-        for (TaskExecutor exec : Registry.optional(TaskExecutor.class)) {
+        for (TaskExecutor exec : tree.reg().optional(TaskExecutor.class)) {
             exec.addTask(new Task() {
                 @Override
                 public void apply() {
-                    for (PersistenceProvider provider : Registry.optional(PersistenceProvider.class)) {
+                    for (PersistenceProvider provider : tree.reg().optional(PersistenceProvider.class)) {
                         provider.persistNode(me());
                     }
                 }
@@ -152,11 +151,11 @@ public class Node implements Persistable, Visitable<Node> {
     }
     
     public void destroy() {
-        for (TaskExecutor exec : Registry.optional(TaskExecutor.class)) {
+        for (TaskExecutor exec : tree.reg().optional(TaskExecutor.class)) {
             exec.addTask(new Task() {
                 @Override
                 public void apply() {
-                    for (PersistenceProvider provider : Registry.optional(PersistenceProvider.class)) {
+                    for (PersistenceProvider provider : tree.reg().optional(PersistenceProvider.class)) {
                         provider.destroyNode(me());
                     }
                 }

@@ -21,7 +21,7 @@ public class TaskExecutor extends Thread {
     private final AtomicReference<CountDownLatch> countRef = 
             new AtomicReference<CountDownLatch>();
     
-    private static final ExecutorService exec = Executors.newCachedThreadPool();
+    private final ExecutorService exec = Executors.newCachedThreadPool();
 
     public TaskExecutor() {
         latch = new CountDownLatch(1);
@@ -29,12 +29,12 @@ public class TaskExecutor extends Thread {
     }
     
     public static void startTaskExecutor(TaskExecutor executor) {
-        exec.submit(executor);
+        executor.exec.submit(executor);
     }
     
     public static void stopTaskExecutor(TaskExecutor executor) {
         executor.stopExecutor();
-        exec.shutdown();
+        executor.exec.shutdown();
         //List<Runnable> runnables = exec.shutdownNow();
     }
 

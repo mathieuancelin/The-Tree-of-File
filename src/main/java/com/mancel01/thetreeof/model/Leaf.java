@@ -3,7 +3,6 @@ package com.mancel01.thetreeof.model;
 import com.mancel01.thetreeof.Tree;
 import com.mancel01.thetreeof.api.*;
 import com.mancel01.thetreeof.task.TaskExecutor;
-import com.mancel01.thetreeof.util.Registry;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -35,11 +34,11 @@ public class Leaf implements Persistable, Visitable<Leaf> {
         this.parent = parent;
         if (payload != null) {
             blob = UUID.randomUUID().toString(); 
-            for (TaskExecutor exec : Registry.optional(TaskExecutor.class)) {
+            for (TaskExecutor exec : tree.reg().optional(TaskExecutor.class)) {
                 exec.addTask(new Task() {
                     @Override
                     public void apply() {
-                        for (PersistenceProvider provider : Registry.optional(PersistenceProvider.class)) {
+                        for (PersistenceProvider provider : me().tree.reg().optional(PersistenceProvider.class)) {
                             provider.persistAsBlob(blob, payload);
                         }
                     }
@@ -59,11 +58,11 @@ public class Leaf implements Persistable, Visitable<Leaf> {
 
     public void changeBlob(final Blob payload) {
         blob = UUID.randomUUID().toString(); 
-        for (TaskExecutor exec : Registry.optional(TaskExecutor.class)) {
+        for (TaskExecutor exec : tree.reg().optional(TaskExecutor.class)) {
             exec.addTask(new Task() {
                 @Override
                 public void apply() {
-                    for (PersistenceProvider provider : Registry.optional(PersistenceProvider.class)) {
+                    for (PersistenceProvider provider : tree.reg().optional(PersistenceProvider.class)) {
                         provider.persistAsBlob(blob, payload);
                     }
                 }
@@ -87,11 +86,11 @@ public class Leaf implements Persistable, Visitable<Leaf> {
     }
     
     public void destroy() {
-        for (TaskExecutor exec : Registry.optional(TaskExecutor.class)) {
+        for (TaskExecutor exec : tree.reg().optional(TaskExecutor.class)) {
             exec.addTask(new Task() {
                 @Override
                 public void apply() {
-                    for (PersistenceProvider provider : Registry.optional(PersistenceProvider.class)) {
+                    for (PersistenceProvider provider : tree.reg().optional(PersistenceProvider.class)) {
                         provider.destroyLeaf(me());
                     }
                 }
@@ -147,7 +146,7 @@ public class Leaf implements Persistable, Visitable<Leaf> {
     }
 
     public Blob getBlob() {
-        for (PersistenceProvider provider : Registry.optional(PersistenceProvider.class)) {
+        for (PersistenceProvider provider : tree.reg().optional(PersistenceProvider.class)) {
             return provider.getBlob(blob);
         }
         return new Blob() {
@@ -173,11 +172,11 @@ public class Leaf implements Persistable, Visitable<Leaf> {
     
     @Override
     public void persist() {
-        for (TaskExecutor exec : Registry.optional(TaskExecutor.class)) {
+        for (TaskExecutor exec : tree.reg().optional(TaskExecutor.class)) {
             exec.addTask(new Task() {
                 @Override
                 public void apply() {
-                    for (PersistenceProvider provider : Registry.optional(PersistenceProvider.class)) {
+                    for (PersistenceProvider provider : tree.reg().optional(PersistenceProvider.class)) {
                         provider.persistLeaf(me());
                     }
                 }

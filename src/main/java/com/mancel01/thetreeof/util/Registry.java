@@ -28,12 +28,12 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class Registry {
 
-    private static final ConcurrentHashMap<Key, Map<String, Bean>> beans 
+    private final ConcurrentHashMap<Key, Map<String, Bean>> beans 
             = new ConcurrentHashMap<Key, Map<String, Bean>>();
 
-    private static final Map<String, String> emptyProps = Collections.emptyMap();
+    private final static Map<String, String> emptyProps = Collections.emptyMap();
     
-    public static void status() {
+    public void status() {
         SimpleLogger.trace("");
         SimpleLogger.trace("Beans : \n");
         for (Key key : beans.keySet()) {
@@ -50,10 +50,10 @@ public class Registry {
         }
     }
     
-    public static <T, U extends T> BeanRegistration<T> register(Class<T> clazz, U implementation) {
+    public <T, U extends T> BeanRegistration<T> register(Class<T> clazz, U implementation) {
         String id = UUID.randomUUID().toString();
         Key key = new Key(clazz, emptyProps);
-        Bean<T> bean = new Bean<T>(clazz, implementation, id, emptyProps);
+        Bean<T> bean = new Bean<T>(clazz, implementation, id, emptyProps, this);
         if (!beans.containsKey(key)) {
             beans.put(key, new HashMap<String, Bean>());
         }
@@ -62,10 +62,10 @@ public class Registry {
             beanList.put(id, bean);
         }
         EventBus.processEvent(new BeanEvent(BeanEventType.BEAN_REGISTRATION, bean.reference()));
-        return new BeanRegistration<T>(clazz, emptyProps, id);
+        return new BeanRegistration<T>(clazz, emptyProps, id, this);
     }
     
-    public static <T, U extends T> BeanRegistration<T> register(final Class<T> clazz, final Class<U> implementation) {
+    public <T, U extends T> BeanRegistration<T> register(final Class<T> clazz, final Class<U> implementation) {
         return register(clazz, new Provider<T>() {
             @Override
             public T get() {
@@ -80,10 +80,10 @@ public class Registry {
         });
     }
     
-    public static <T, U extends T> BeanRegistration<T> register(Class<T> clazz, Provider<U> implementation) {
+    public <T, U extends T> BeanRegistration<T> register(Class<T> clazz, Provider<U> implementation) {
         String id = UUID.randomUUID().toString();
         Key key = new Key(clazz, emptyProps);
-        Bean<T> bean = new Bean<T>(clazz, implementation, id, emptyProps);
+        Bean<T> bean = new Bean<T>(clazz, implementation, id, emptyProps, this);
         if (!beans.containsKey(key)) {
             beans.put(key, new HashMap<String, Bean>());
         }
@@ -92,10 +92,10 @@ public class Registry {
             beanList.put(id, bean);
         }
         EventBus.processEvent(new BeanEvent(BeanEventType.BEAN_REGISTRATION, bean.reference()));
-        return new BeanRegistration<T>(clazz, emptyProps, id);
+        return new BeanRegistration<T>(clazz, emptyProps, id, this);
     }
     
-    public static <T> Option<BeanReference<T>> reference(Class<T> clazz) {
+    public <T> Option<BeanReference<T>> reference(Class<T> clazz) {
         Key key = new Key(clazz, emptyProps);
         if (!beans.containsKey(key)) {
             return Option.none();
@@ -106,7 +106,7 @@ public class Registry {
         return Option.none();
     }
 
-    public static <T> EnhancedList<BeanReference<?>> references() {
+    public <T> EnhancedList<BeanReference<?>> references() {
         EnhancedList<BeanReference<?>> refs = C.eList(new ArrayList<BeanReference<?>>());
         for (Map<String, Bean> vals : beans.values()) {
             for (Bean b : vals.values()) {
@@ -116,7 +116,7 @@ public class Registry {
         return refs;
     }
     
-    public static <T> EnhancedList<BeanReference<T>> references(Class<T> clazz) {
+    public <T> EnhancedList<BeanReference<T>> references(Class<T> clazz) {
         Key key = new Key(clazz, emptyProps);
         if (!beans.containsKey(key)) {
             return C.eList();
@@ -128,7 +128,7 @@ public class Registry {
         return implems;
     }
     
-    public static <T> MaybeReference<T> optionalReference(final Class<T> clazz) {
+    public <T> MaybeReference<T> optionalReference(final Class<T> clazz) {
         return new MaybeReference<T>() {
             @Override
             public Class<T> type() {
@@ -149,7 +149,7 @@ public class Registry {
         };
     }
     
-    public static <T> Option<T> optional(final Class<T> clazz) {
+    public <T> Option<T> optional(final Class<T> clazz) {
         Key key = new Key(clazz, emptyProps);
         if (!beans.containsKey(key)) {
             return Option.none();
@@ -160,7 +160,7 @@ public class Registry {
         return Option.none();
     }
 
-    public static <T> T instance(Class<T> clazz) {
+    public <T> T instance(Class<T> clazz) {
         Key key = new Key(clazz, emptyProps);
         if (!beans.containsKey(key)) {
             return null;
@@ -171,7 +171,7 @@ public class Registry {
         return null;
     }
     
-    public static <T> EnhancedList<T> instances() {
+    public <T> EnhancedList<T> instances() {
         EnhancedList<T> implems = C.eList(new ArrayList<T>());
         for (Map<String, Bean> vals : beans.values()) {
             for (Bean b : vals.values()) {
@@ -181,7 +181,7 @@ public class Registry {
         return implems;
     }
 
-    public static <T> EnhancedList<T> instances(Class<T> clazz) {
+    public <T> EnhancedList<T> instances(Class<T> clazz) {
         Key key = new Key(clazz, emptyProps);
         if (!beans.containsKey(key)) {
             return C.eList();
@@ -193,7 +193,7 @@ public class Registry {
         return implems;
     }
 
-    public static BeanListenerRegistration registerListener(BeanListener<?> listener) {
+    public BeanListenerRegistration registerListener(BeanListener<?> listener) {
         if (!EventBus.listeners.containsKey(FakeFilterType.class)) {
             EventBus.listeners.putIfAbsent(FakeFilterType.class, new ArrayList<BeanListener<?>>());
         }
@@ -201,7 +201,7 @@ public class Registry {
         return new BeanListenerRegistration(listener);
     }
 
-    public static <T> BeanListenerRegistration registerListener(BeanListener<T> listener, Class<T> clazz) {
+    public <T> BeanListenerRegistration registerListener(BeanListener<T> listener, Class<T> clazz) {
         if (!EventBus.listeners.containsKey(clazz)) {
             EventBus.listeners.putIfAbsent(clazz, new ArrayList<BeanListener<?>>());
         }
@@ -229,23 +229,26 @@ public class Registry {
         private final Provider<T> implementation;
         private final String id;
         private final Map<String, String> properties;
+        private final Registry reg;
 
-        public Bean(Class<T> clazz, Object implementation, String id, Map<String, String> properties) {
+        public Bean(Class<T> clazz, Object implementation, String id, Map<String, String> properties, Registry reg) {
             this.clazz = clazz;
             this.implementation = new FilledProvider<T>((T) implementation);
             this.id = id;
             this.properties = properties;
+            this.reg = reg;
         }
         
-        public Bean(Class<T> clazz, Provider<T> implementation, String id, Map<String, String> properties) {
+        public Bean(Class<T> clazz, Provider<T> implementation, String id, Map<String, String> properties, Registry reg) {
             this.clazz = clazz;
             this.implementation = implementation;
             this.id = id;
             this.properties = properties;
+            this.reg = reg;
         }
 
         public BeanReference<T> reference() {
-            return new BeanReference<T>(clazz, properties, id);
+            return new BeanReference<T>(clazz, properties, id, reg);
         }
 
         public T instance() {
@@ -332,17 +335,19 @@ public class Registry {
         private final String id;
         private final Class<T> clazz;
         private final Map<String, String> props;
+        private final Registry reg;
 
-        private BeanRegistration(Class<T> clazz, Map<String, String> props, String id) {
+        private BeanRegistration(Class<T> clazz, Map<String, String> props, String id, Registry reg) {
             this.id = id;
             this.props = props;
             this.clazz = clazz;
+            this.reg = reg;
         }
 
         public void unregister() {
             Key key = new Key(clazz, emptyProps);
-            if (beans.containsKey(key)) {
-                Map<String, Bean> beanList = beans.get(key);
+            if (reg.beans.containsKey(key)) {
+                Map<String, Bean> beanList = reg.beans.get(key);
                 if (beanList.containsKey(id)) {
                     EventBus.processEvent(new BeanEvent(BeanEventType.BEAN_UNREGISTRATION, reference()));
                     beanList.remove(id);
@@ -352,8 +357,8 @@ public class Registry {
 
         public BeanReference<T> reference() {
             Key key = new Key(clazz, emptyProps);
-            if (beans.containsKey(key)) {
-                Map<String, Bean> beanList = beans.get(key);
+            if (reg.beans.containsKey(key)) {
+                Map<String, Bean> beanList = reg.beans.get(key);
                 if (beanList.containsKey(id)) {
                     return beanList.get(id).reference();
                 }
@@ -363,8 +368,8 @@ public class Registry {
 
         public T instance() {
             Key key = new Key(clazz, emptyProps);
-            if (beans.containsKey(key)) {
-                Map<String, Bean> beanList = beans.get(key);
+            if (reg.beans.containsKey(key)) {
+                Map<String, Bean> beanList = reg.beans.get(key);
                 if (beanList.containsKey(id)) {
                     return (T) beanList.get(id).instance();
                 }
@@ -444,11 +449,13 @@ public class Registry {
         private final String id;
         private final Class<T> clazz;
         private final Map<String, String> props;
+        private final Registry reg;
 
-        private BeanReference(Class<T> clazz, Map<String, String> props, String id) {
+        private BeanReference(Class<T> clazz, Map<String, String> props, String id, Registry reg) {
             this.id = id;
             this.props = props;
             this.clazz = clazz;
+            this.reg = reg;
         }
 
         @Override
@@ -462,8 +469,8 @@ public class Registry {
 
         public T instance() {
             Key key = new Key(clazz, emptyProps);
-            if (beans.containsKey(key)) {
-                Map<String, Bean> beanList = beans.get(key);
+            if (reg.beans.containsKey(key)) {
+                Map<String, Bean> beanList = reg.beans.get(key);
                 if (beanList.containsKey(id)) {
                     return (T) beanList.get(id).instance();
                 }

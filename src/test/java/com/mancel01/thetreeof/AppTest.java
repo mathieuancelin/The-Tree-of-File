@@ -14,7 +14,7 @@ public class AppTest {
 
     @Test
     public void testApp() throws Exception {
-        Tree tree = new Tree();
+        Tree tree = new Tree(new File("./repo1"), "dummy");
         Node root = tree.root();
         final byte[] b = Files.toByteArray(new File("pom.xml"));
         Blob bytes = new Blob() {
@@ -60,5 +60,15 @@ public class AppTest {
         tree.persist();
         root.visit(new PrintVisitor());
         tree.waitAndStop();
+        Tree tree2 = new Tree(new File("./repo2"), "dummy");
+        tree2.root().addChildAndSelect(node("categ1"))
+                    .addLeafAndSelect(leaf("doc1", bytes))
+                            .addMetadata("key1", "value1")
+                            .addMetadata("key2", "value2")
+                            .addMetadata("key3", "value3")
+                        .back()
+                    .addLeaf(leaf("doc2", bytes));
+        tree2.persist();
+        tree2.waitAndStop();
     }
 }

@@ -20,6 +20,7 @@ public class Tree implements Persistable {
     private Node root;
     private final File rootFile;
     private final Configuration config;
+    private Registry registry;
     private TaskExecutor exec;
     
     static {
@@ -57,23 +58,24 @@ public class Tree implements Persistable {
     }
     
     public void destroyTree() {
-        for (PersistenceProvider provider : Registry.optional(PersistenceProvider.class)) {
+        for (PersistenceProvider provider : registry.optional(PersistenceProvider.class)) {
             provider.destroyTree();
         }
     }
     
     public void init() {
         this.root = new Node(this, "root");
-        Registry.register(PersistenceProvider.class, new FilePersistenceProvider(rootFile));
+        registry = new Registry();
+        registry.register(PersistenceProvider.class, new FilePersistenceProvider(rootFile));
         exec = new TaskExecutor();
         TaskExecutor.startTaskExecutor(exec);
-        Registry.register(TaskExecutor.class, exec);
+        registry.register(TaskExecutor.class, exec);
     }
     
     @Override
     public void persist() {
         root.persist();
-        for (PersistenceProvider provider : Registry.optional(PersistenceProvider.class)) {
+        for (PersistenceProvider provider : registry.optional(PersistenceProvider.class)) {
             provider.createBlobStore();
         }
     }
@@ -84,6 +86,10 @@ public class Tree implements Persistable {
 
     public Node root() {
         return root;
+    }
+
+    public synchronized Registry reg() {
+        return registry;
     }
     
     public Collection<Node> allNodes() {
@@ -97,7 +103,7 @@ public class Tree implements Persistable {
     public Option<Node> selectNode(String expression) {
         Collection<Node> nodes = allNodes();
         for (Node node : nodes) {
-            if (node.getFullName().toLowerCase().matches(expression)) {
+            if (node.getFullName().toLowerCase().equals(expression)) {
                 return Option.some(node);
             }
         }
@@ -131,6 +137,5 @@ public class Tree implements Persistable {
     // TODO : Security visitor
     // TODO : Security provider
     // TODO : finish crud methods
-    // TODO : add helpers methods to creates nodes and stuff like Tree.instance().select("/Root/machin/truc").addLeaf
     // TODO : add search methods
 }
