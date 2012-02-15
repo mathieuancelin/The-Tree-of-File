@@ -46,6 +46,12 @@ public class Tree implements Persistable {
         TaskExecutor.stopTaskExecutor(exec);
     }
     
+    public void destroyTree() {
+        for (PersistenceProvider provider : Registry.optional(PersistenceProvider.class)) {
+            provider.destroyTree();
+        }
+    }
+    
     @Override
     public void persist() {
         root.persist();
@@ -98,4 +104,7 @@ public class Tree implements Persistable {
     
     // TODO : Security visitor
     // TODO : Security provider
+    // TODO : finish crud methods
+    // TODO : add helpers methods to creates nodes and stuff like Tree.instance().select("/Root/machin/truc").addLeaf
+    // TODO : add search methods
 }

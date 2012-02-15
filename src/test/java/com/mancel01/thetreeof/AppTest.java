@@ -2,14 +2,12 @@ package com.mancel01.thetreeof;
 
 import com.google.common.io.Files;
 import com.mancel01.thetreeof.api.Blob;
+import static com.mancel01.thetreeof.model.Leaf.leaf;
 import com.mancel01.thetreeof.model.Node;
+import static com.mancel01.thetreeof.model.Node.node;
 import com.mancel01.thetreeof.visitor.PrintVisitor;
-import org.junit.Test;
-
-import static com.mancel01.thetreeof.model.Node.*;
-import static com.mancel01.thetreeof.model.Leaf.*;
-
 import java.io.File;
+import org.junit.Test;
 
 
 public class AppTest {
@@ -61,6 +59,7 @@ public class AppTest {
                 .back();
         Tree.instance().persist();
         root.visit(new PrintVisitor());
+        root.destroy();
         Tree.instance().waitAndStop();
     }
 }

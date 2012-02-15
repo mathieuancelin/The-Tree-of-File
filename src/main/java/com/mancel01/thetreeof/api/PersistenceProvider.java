@@ -15,4 +15,9 @@ public interface PersistenceProvider {
     
     public void persistNode(Node node);
     
+    public void destroyTree();
+    
+    public void destroyNode(Node node);
+    
+    public void destroyLeaf(Leaf leaf);
 }

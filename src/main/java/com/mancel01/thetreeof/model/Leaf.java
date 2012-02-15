@@ -78,6 +78,24 @@ public class Leaf implements Persistable, Visitable<Leaf> {
         // TODO : move files
         persist();
     }
+    
+    public void destroy() {
+        for (TaskExecutor exec : Registry.optional(TaskExecutor.class)) {
+            exec.addTask(new Task() {
+                @Override
+                public void apply() {
+                    for (PersistenceProvider provider : Registry.optional(PersistenceProvider.class)) {
+                        provider.destroyLeaf(me());
+                    }
+                }
+
+                @Override
+                public String toString() {
+                    return "Destroy leaf " + uuid;
+                }
+            });
+        }
+    }
 
     void setName(String name) {
         this.name = name;

@@ -142,6 +142,24 @@ public class Node implements Persistable, Visitable<Node> {
     public Collection<Leaf> leafs() {
         return Collections.unmodifiableCollection(leafs);
     }
+    
+    public void destroy() {
+        for (TaskExecutor exec : Registry.optional(TaskExecutor.class)) {
+            exec.addTask(new Task() {
+                @Override
+                public void apply() {
+                    for (PersistenceProvider provider : Registry.optional(PersistenceProvider.class)) {
+                        provider.destroyNode(me());
+                    }
+                }
+
+                @Override
+                public String toString() {
+                    return "Destroy leaf " + uuid;
+                }
+            });
+        }
+    }
 
     public Node getParent() {
         return parent;
