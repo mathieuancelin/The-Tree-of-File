@@ -63,7 +63,7 @@ public class FilePersistenceProvider implements PersistenceProvider {
     @Override
     public void persistLeaf(Leaf leaf) {
         try {
-            File path = new File(Tree.instance().rootFile(), leaf.getParent().getFullName() + Tree.PATH_SEPARATOR + leaf.getUuid());
+            File path = new File(rootFile, leaf.getParent().getFullName() + Tree.PATH_SEPARATOR + leaf.getUuid());
             if (!path.exists()) {
                 path.mkdirs();
             }
@@ -88,9 +88,9 @@ public class FilePersistenceProvider implements PersistenceProvider {
     public void persistNode(Node node) {
         File path = null;
         if (node.getParent() == null) {
-            path = new File(Tree.instance().rootFile(), node.getName());
+            path = new File(rootFile, node.getName());
         } else {
-            path = new File(Tree.instance().rootFile(), node.getParent().getFullName() + Tree.PATH_SEPARATOR + node.getName());
+            path = new File(rootFile, node.getParent().getFullName() + Tree.PATH_SEPARATOR + node.getName());
         }
         if (!path.exists()) {
             path.mkdirs();
@@ -105,7 +105,7 @@ public class FilePersistenceProvider implements PersistenceProvider {
 
     @Override
     public void destroyTree() {
-        destroy(Tree.instance().rootFile());
+        destroy(rootFile);
     }
     
     private void destroy(File f) {
@@ -127,9 +127,9 @@ public class FilePersistenceProvider implements PersistenceProvider {
         }
         File path = null;
         if (node.getParent() == null) {
-            path = new File(Tree.instance().rootFile(), node.getName());
+            path = new File(rootFile, node.getName());
         } else {
-            path = new File(Tree.instance().rootFile(), node.getParent().getFullName() + Tree.PATH_SEPARATOR + node.getName());
+            path = new File(rootFile, node.getParent().getFullName() + Tree.PATH_SEPARATOR + node.getName());
         }
         destroy(path);
     }
@@ -137,7 +137,7 @@ public class FilePersistenceProvider implements PersistenceProvider {
     @Override
     public void destroyLeaf(Leaf leaf) {
         File blob = new File(blobStore, leaf.getBlobId());
-        File path = new File(Tree.instance().rootFile(), leaf.getParent().getFullName() + Tree.PATH_SEPARATOR + leaf.getUuid());
+        File path = new File(rootFile, leaf.getParent().getFullName() + Tree.PATH_SEPARATOR + leaf.getUuid());
         File metadata = new File(path, Leaf.META_FILE_NAME);
         blob.delete();
         metadata.delete();

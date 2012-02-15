@@ -17,14 +17,18 @@ public class Node implements Persistable, Visitable<Node> {
     private final List<Node> children = Collections.synchronizedList(new ArrayList<Node>());
     private final List<Leaf> leafs = Collections.synchronizedList(new ArrayList<Leaf>());
 
-    public Node(String name) {
+    private final Tree tree;
+    
+    public Node(Tree tree, String name) {
+        this.tree = tree;
         this.parent = null;
         this.name = name;
         this.fullName = Tree.PATH_SEPARATOR + name;
         SimpleLogger.trace("create node {}", fullName);
     }
 
-    public Node(String name, Node parent) {
+    public Node(Tree tree, String name, Node parent) {
+        this.tree = tree;
         this.parent = parent;
         this.name = name;
         this.fullName = parent.fullName + Tree.PATH_SEPARATOR + name;
@@ -33,6 +37,10 @@ public class Node implements Persistable, Visitable<Node> {
     
     public Node me() {
         return this;
+    }
+    
+    public Tree tree() {
+        return tree;
     }
     
     @Override
@@ -205,7 +213,7 @@ public class Node implements Persistable, Visitable<Node> {
         
         @Override
         public Node create(Node parent) {
-            return new Node(name, parent);
+            return new Node(parent.tree(), name, parent);
         }
     }
 }

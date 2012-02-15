@@ -7,6 +7,7 @@ import com.mancel01.thetreeof.model.Leaf;
 import com.mancel01.thetreeof.model.Node;
 import com.mancel01.thetreeof.task.TaskExecutor;
 import com.mancel01.thetreeof.util.Configuration;
+import com.mancel01.thetreeof.util.F.Option;
 import com.mancel01.thetreeof.util.Registry;
 import com.mancel01.thetreeof.util.SimpleLogger;
 import java.io.File;
@@ -16,23 +17,32 @@ public class Tree implements Persistable {
     
     public static final String PATH_SEPARATOR = "/";
     
-    private final Node root;
+    private Node root;
     private final File rootFile;
     private final Configuration config;
-    private final TaskExecutor exec = new TaskExecutor();
+    private TaskExecutor exec;
     
     static {
         SimpleLogger.enableColors(true);
         SimpleLogger.enableTrace(true);
     }
     
-    private Tree() {
-        config = new Configuration("config.properties");
-        rootFile = new File(config.get("root").getOrElse("./repo"));
-        root = new Node("Root");
-        Registry.register(PersistenceProvider.class, new FilePersistenceProvider(rootFile));
-        TaskExecutor.startTaskExecutor(exec);
-        Registry.register(TaskExecutor.class, exec);
+    public Tree() {
+        this.config = new Configuration("config.properties");
+        this.rootFile = new File(config.get("root").getOrElse("./repo"));
+        init();
+    }
+    
+    public Tree(File rootFile) {
+        this.config = new Configuration("dummy.properties");
+        this.rootFile = rootFile;
+        init();
+    }
+    
+    public Tree(Configuration configuration) {
+        this.config = configuration;
+        this.rootFile = new File(config.get("root").getOrElse("./repo"));
+        init();
     }
     
     public void waitAndStop() {
@@ -50,6 +60,14 @@ public class Tree implements Persistable {
         for (PersistenceProvider provider : Registry.optional(PersistenceProvider.class)) {
             provider.destroyTree();
         }
+    }
+    
+    public void init() {
+        this.root = new Node(this, "root");
+        Registry.register(PersistenceProvider.class, new FilePersistenceProvider(rootFile));
+        exec = new TaskExecutor();
+        TaskExecutor.startTaskExecutor(exec);
+        Registry.register(TaskExecutor.class, exec);
     }
     
     @Override
@@ -75,32 +93,40 @@ public class Tree implements Persistable {
     public Collection<Leaf> allLeafs() {
         return root.allLeafsBelow();
     }
-
-    ////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////
     
-    private static final Holder<Tree> HOLDER = TreeHolder.INSTANCE;
-    
-    public static synchronized Tree instance() {
-        return HOLDER.get();
-    }
-    
-    private static interface Holder<T> {
-        T get();
-    }
-    
-    private static enum TreeHolder implements Holder<Tree> {
-
-        INSTANCE {
-
-            private final Tree tree = new Tree();
-            
-            @Override
-            public Tree get() {
-                return tree;
+    public Option<Node> selectNode(String expression) {
+        Collection<Node> nodes = allNodes();
+        for (Node node : nodes) {
+            if (node.getFullName().toLowerCase().matches(expression)) {
+                return Option.some(node);
             }
         }
+        return Option.none();
     }
+
+//    
+//    private static final Holder<Tree> HOLDER = TreeHolder.INSTANCE;
+//    
+//    public static synchronized Tree instance() {
+//        return HOLDER.get();
+//    }
+//    
+//    private static interface Holder<T> {
+//        T get();
+//    }
+//    
+//    private static enum TreeHolder implements Holder<Tree> {
+//
+//        INSTANCE {
+//
+//            private final Tree tree = new Tree();
+//            
+//            @Override
+//            public Tree get() {
+//                return tree;
+//            }
+//        }
+//    }
     
     // TODO : Security visitor
     // TODO : Security provider

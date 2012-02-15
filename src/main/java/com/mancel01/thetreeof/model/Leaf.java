@@ -26,8 +26,11 @@ public class Leaf implements Persistable, Visitable<Leaf> {
     
     private String blob;
     
-    public Leaf(String name, Node parent, final Blob payload) {
+    private final Tree tree;
+    
+    public Leaf(Tree tree, String name, Node parent, final Blob payload) {
         this.name = name;
+        this.tree = tree;
         this.fullName = parent.getFullName() + Tree.PATH_SEPARATOR + name;
         this.parent = parent;
         if (payload != null) {
@@ -48,6 +51,10 @@ public class Leaf implements Persistable, Visitable<Leaf> {
                 });
             }
         }
+    }
+
+    public Tree tree() {
+        return tree;
     }
 
     public void changeBlob(final Blob payload) {
@@ -231,7 +238,7 @@ public class Leaf implements Persistable, Visitable<Leaf> {
         
         @Override
         public Leaf create(Node parent) {
-            return new Leaf(name, parent, bytes);
+            return new Leaf(parent.tree(), name, parent, bytes);
         }
     }
 }

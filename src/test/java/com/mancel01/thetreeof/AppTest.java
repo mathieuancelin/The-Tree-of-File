@@ -14,10 +14,10 @@ public class AppTest {
 
     @Test
     public void testApp() throws Exception {
-        Node root = Tree.instance().root();
+        Tree tree = new Tree();
+        Node root = tree.root();
         final byte[] b = Files.toByteArray(new File("pom.xml"));
         Blob bytes = new Blob() {
-
             @Override
             public byte[] bytes() {
                 return b;
@@ -57,9 +57,8 @@ public class AppTest {
                 .back()
             .addChildAndSelect(node("categ6"))
                 .back();
-        Tree.instance().persist();
+        tree.persist();
         root.visit(new PrintVisitor());
-        root.destroy();
-        Tree.instance().waitAndStop();
+        tree.waitAndStop();
     }
 }
