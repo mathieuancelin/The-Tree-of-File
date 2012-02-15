@@ -33,8 +33,8 @@ public class Tree implements Persistable {
         init();
     }
     
-    public Tree(File rootFile) {
-        this.config = new Configuration("dummy.properties");
+    public Tree(File rootFile, String config) {
+        this.config = new Configuration(config);
         this.rootFile = rootFile;
         init();
     }
