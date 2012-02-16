@@ -1,6 +1,5 @@
 package com.mancel01.thetreeof;
 
-import com.google.common.io.Files;
 import com.mancel01.thetreeof.api.Blob;
 import com.mancel01.thetreeof.blob.FileBlob;
 import com.mancel01.thetreeof.blob.StringBlob;
@@ -55,7 +54,7 @@ public class AppTest {
                 .back()
             .addChildAndSelect(node("categ6"))
                 .back();
-        tree.persist();
+        tree.save();
         for (Leaf leaf : tree.selectLeaf("/Root/categ1/doc1") ) {
             leaf.changeBlob(bytes);
         }
@@ -69,7 +68,7 @@ public class AppTest {
                             .addMetadata("key3", "value3")
                         .back()
                     .addLeaf(leaf("doc2", bytes));
-        tree2.persist();
+        tree2.save().get();
         tree2.waitAndStop();
     }
 }

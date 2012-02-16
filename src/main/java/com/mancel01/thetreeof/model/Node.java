@@ -51,7 +51,7 @@ public class Node implements Persistable<Node>, Visitable<Node> {
     }
     
     @Override
-    public Promise<Node> persist() {
+    public Promise<Node> save() {
         final Promise<Node> promise = new Promise<Node>();
         for (TaskExecutor exec : tree.reg().optional(TaskExecutor.class)) {
             exec.addTask(new Task() {

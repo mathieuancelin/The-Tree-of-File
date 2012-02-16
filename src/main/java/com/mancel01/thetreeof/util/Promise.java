@@ -11,7 +11,7 @@ public class Promise<V> implements Future<V>, F.Action<V> {
 
     private final CountDownLatch taskLock = new CountDownLatch(1);
     private boolean cancelled = false;
-    private List<F.Action<Promise<V>>> callbacks = new ArrayList<F.Action<Promise<V>>>();
+    private List<F.Action<V>> callbacks = new ArrayList<F.Action<V>>();
     private boolean invoked = false;
     private V result = null;
 
@@ -57,19 +57,19 @@ public class Promise<V> implements Future<V>, F.Action<V> {
                 return;
             }
         }
-        for (F.Action<Promise<V>> callback : callbacks) {
-            callback.apply(this);
+        for (F.Action<V> callback : callbacks) {
+            callback.apply(result);
         }
     }
 
-    public void onRedeem(F.Action<Promise<V>> callback) {
+    public void onRedeem(F.Action<V> callback) {
         synchronized (this) {
             if (!invoked) {
                 callbacks.add(callback);
             }
         }
         if (invoked) {
-            callback.apply(this);
+            callback.apply(result);
         }
     }
 
@@ -124,10 +124,10 @@ public class Promise<V> implements Future<V>, F.Action<V> {
                 return get();
             }
         };
-        final F.Action<Promise<T>> action = new F.Action<Promise<T>>() {
+        final F.Action<T> action = new F.Action<T>() {
 
             @Override
-            public void apply(Promise<T> completed) {
+            public void apply(T completed) {
                 waitAllLock.countDown();
                 if (waitAllLock.getCount() == 0) {
                     try {
@@ -146,16 +146,16 @@ public class Promise<V> implements Future<V>, F.Action<V> {
 
     public static <T> Promise<T> waitAny(final Promise<T>... futures) {
         final Promise<T> result = new Promise<T>();
-        final F.Action<Promise<T>> action = new F.Action<Promise<T>>() {
+        final F.Action<T> action = new F.Action<T>() {
 
             @Override
-            public void apply(Promise<T> completed) {
+            public void apply(T completed) {
                 synchronized (this) {
                     if (result.isDone()) {
                         return;
                     }
                 }
-                result.apply(completed.getOrNull());
+                result.apply(completed);
             }
         };
         for (Promise<T> f : futures) {

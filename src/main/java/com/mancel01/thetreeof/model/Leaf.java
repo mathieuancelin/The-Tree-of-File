@@ -64,7 +64,7 @@ public class Leaf implements Persistable<Leaf>, Visitable<Leaf> {
     private long updateAndIncreaseVersion(String newBlodId) {
         currentVersion++;
         versions.put(currentVersion, newBlodId);
-        persist();
+        save();
         return currentVersion;
     }
 
@@ -90,7 +90,7 @@ public class Leaf implements Persistable<Leaf>, Visitable<Leaf> {
             });
         }
         lastChanged = new Date();
-        persist();
+        save();
     }
     
     public void changeName(final String name) {
@@ -98,7 +98,7 @@ public class Leaf implements Persistable<Leaf>, Visitable<Leaf> {
         this.fullName = parent.getFullName() + Tree.PATH_SEPARATOR + name;
         lastChanged = new Date();
         // TODO : move files
-        persist();
+        save();
     }
     
     public void destroy() {
@@ -137,19 +137,19 @@ public class Leaf implements Persistable<Leaf>, Visitable<Leaf> {
     
     public Leaf addMetadata(String key, String value) {
         metadata.put(key, new Metadata<String, String>(key, value));
-        persist();
+        save();
         return this;
     }
     
     public Leaf clearMetadata() {
         metadata.clear();
-        persist();
+        save();
         return this;
     }
     
     public Leaf removeMetadata(String key) {
         metadata.remove(key);
-        persist();
+        save();
         return this;
     }
     
@@ -185,7 +185,7 @@ public class Leaf implements Persistable<Leaf>, Visitable<Leaf> {
 
     public void changeVersion(long version) {
         this.currentVersion = version;
-        persist();
+        save();
     }
 
     public long getVersion() {
@@ -205,7 +205,7 @@ public class Leaf implements Persistable<Leaf>, Visitable<Leaf> {
     }
     
     @Override
-    public Promise<Leaf> persist() {
+    public Promise<Leaf> save() {
         final Promise<Leaf> promise = new Promise<Leaf>();
         for (TaskExecutor exec : tree.reg().optional(TaskExecutor.class)) {
             exec.addTask(new Task() {

@@ -94,10 +94,10 @@ public class FilePersistenceProvider implements PersistenceProvider {
             path.mkdirs();
         }
         for (Node n : node.children()) {
-            n.persist();
+            n.save();
         }
         for (Leaf leaf : node.leafs()) {
-            leaf.persist();
+            leaf.save();
         }
     }
 

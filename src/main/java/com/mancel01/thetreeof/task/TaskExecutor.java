@@ -7,7 +7,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class TaskExecutor extends Thread {
     
@@ -18,14 +17,10 @@ public class TaskExecutor extends Thread {
     
     private final AtomicBoolean started = new AtomicBoolean(false);
     
-    private final AtomicReference<CountDownLatch> countRef = 
-            new AtomicReference<CountDownLatch>();
-    
     private final ExecutorService exec = Executors.newCachedThreadPool();
 
     public TaskExecutor() {
         latch = new CountDownLatch(1);
-        countRef.set(latch);
     }
     
     public static void startTaskExecutor(TaskExecutor executor) {
@@ -35,7 +30,6 @@ public class TaskExecutor extends Thread {
     public static void stopTaskExecutor(TaskExecutor executor) {
         executor.stopExecutor();
         executor.exec.shutdown();
-        //List<Runnable> runnables = exec.shutdownNow();
     }
 
     @Override
@@ -46,8 +40,10 @@ public class TaskExecutor extends Thread {
             waitIfMailboxIsEmpty();
             Task task = mailbox.poll();
             if (task != null) {
+                latch = new CountDownLatch(1);
                 SimpleLogger.trace("Execute task : {}", task);
                 task.apply();
+                latch.countDown();
             }
         }
         started.compareAndSet(true, false);
@@ -57,19 +53,14 @@ public class TaskExecutor extends Thread {
         if (task != null) {
             SimpleLogger.trace("New task waiting ... {}", task);
             mailbox.add(task);
-            countRef.get().countDown();
         }
     }
     
     private void stopExecutor() {
-        countRef.get().countDown();
         started.set(false);
     }
 
     private void waitIfMailboxIsEmpty() {
-//        if (mailbox.isEmpty()) {
-//            setLatchAndWait();
-//        }
         while(mailbox.isEmpty()) {
             try {
                 Thread.sleep(200);
@@ -78,20 +69,14 @@ public class TaskExecutor extends Thread {
             }
         }
     }
-
-    private void setLatchAndWait() {
-        if (countRef.get().getCount() == 0) {
-            latch = new CountDownLatch(1);
-            countRef.set(latch);
-        }
-        try {
-            countRef.get().await();
-        } catch (InterruptedException ex) {
-            //ex.printStackTrace();
-        }
-    }
     
     public boolean isMailboxEmpty() {
         return mailbox.isEmpty();
+    }
+    
+    public void waitForLastTask() {
+        try {
+            latch.await();
+        } catch (InterruptedException ex) { }
     }
 }

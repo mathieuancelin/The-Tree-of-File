@@ -72,15 +72,16 @@ public class Tree implements Persistable<Tree> {
     public void waitAndStop() {
         while(!exec.isMailboxEmpty()) {
             try {
-                Thread.sleep(1000);
+                Thread.sleep(200);
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
             }
         }
+        exec.waitForLastTask();
         TaskExecutor.stopTaskExecutor(exec);
     }
     
-    public void destroyTree() {
+    public void destroy() {
         for (PersistenceProvider provider : registry.optional(PersistenceProvider.class)) {
             provider.destroyTree();
         }
@@ -93,21 +94,22 @@ public class Tree implements Persistable<Tree> {
         exec = new TaskExecutor();
         TaskExecutor.startTaskExecutor(exec);
         registry.register(TaskExecutor.class, exec);
+        save();
     }
     
     @Override
-    public Promise<Tree> persist() {
+    public Promise<Tree> save() {
         final Promise<Tree> promise = new Promise<Tree>();
         for (PersistenceProvider provider : registry.optional(PersistenceProvider.class)) {
             provider.createBlobStore();
         }
-        Promise<Node> node = root.persist();
-        node.onRedeem(new F.Action<Promise<Node>>() {
+        Promise<Node> node = root.save();
+        node.onRedeem(new F.Action<Node>() {
 
             @Override
-            public void apply(Promise<Node> t) {
+            public void apply(Node t) {
                 try {
-                    promise.apply(t.get().tree());
+                    promise.apply(t.tree());
                 } catch (Exception ex) {}
             }
         });
