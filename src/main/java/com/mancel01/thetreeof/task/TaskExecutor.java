@@ -1,6 +1,8 @@
 package com.mancel01.thetreeof.task;
 
 import com.mancel01.thetreeof.api.Task;
+import com.mancel01.thetreeof.api.TaskListener;
+import com.mancel01.thetreeof.util.Registry;
 import com.mancel01.thetreeof.util.SimpleLogger;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
@@ -18,9 +20,13 @@ public class TaskExecutor extends Thread {
     private final AtomicBoolean started = new AtomicBoolean(false);
     
     private final ExecutorService exec = Executors.newCachedThreadPool();
+    
+    private Registry registry;
 
-    public TaskExecutor() {
+    public TaskExecutor(Registry registry) {
+        assert registry != null;
         latch = new CountDownLatch(1);
+        this.registry = registry;
     }
     
     public static void startTaskExecutor(TaskExecutor executor) {
@@ -50,9 +56,11 @@ public class TaskExecutor extends Thread {
     }
     
     public void addTask(Task task) {
-        if (task != null) {
-            SimpleLogger.trace("New task waiting ... {}", task);
-            mailbox.add(task);
+        assert task != null;
+        SimpleLogger.trace("New task waiting ... {}", task);
+        mailbox.add(task);
+        for (TaskListener listener : registry.instances(TaskListener.class)) {
+            listener.listen(task);
         }
     }
     

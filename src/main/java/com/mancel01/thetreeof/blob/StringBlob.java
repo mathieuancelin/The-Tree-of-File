@@ -8,6 +8,7 @@ public class StringBlob implements Blob {
     private final String value;
 
     public StringBlob(String value) {
+        assert value != null;
         this.value = value;
     }
 

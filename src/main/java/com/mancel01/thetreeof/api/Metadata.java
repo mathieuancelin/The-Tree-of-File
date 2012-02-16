@@ -6,6 +6,8 @@ public class Metadata<K, V> {
     private final V value;
 
     public Metadata(K key, V value) {
+        assert key != null;
+        assert value != null;
         this.key = key;
         this.value = value;
     }

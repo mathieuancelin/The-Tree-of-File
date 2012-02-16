@@ -8,7 +8,7 @@ import com.mancel01.thetreeof.api.PersistenceProvider;
 import com.mancel01.thetreeof.blob.FileBlob;
 import com.mancel01.thetreeof.model.Leaf;
 import com.mancel01.thetreeof.model.Node;
-import com.mancel01.thetreeof.util.Configuration;
+import com.mancel01.thetreeof.util.FileStore;
 import com.mancel01.thetreeof.util.F;
 import com.mancel01.thetreeof.util.SimpleLogger;
 import java.io.File;
@@ -61,7 +61,7 @@ public class FilePersistenceProvider implements PersistenceProvider {
             }
             File metadata = new File(path, Leaf.META_FILE_NAME);
             metadata.createNewFile();
-            Configuration config = new Configuration(metadata.getAbsolutePath());
+            FileStore config = new FileStore(metadata.getAbsolutePath());
             config.set("uuid", leaf.getUuid());
             config.set("name", leaf.getName());
             config.set("fullName", leaf.getFullName());

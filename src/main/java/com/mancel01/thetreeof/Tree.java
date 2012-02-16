@@ -2,21 +2,15 @@ package com.mancel01.thetreeof;
 
 import com.mancel01.thetreeof.api.Persistable;
 import com.mancel01.thetreeof.api.PersistenceProvider;
+import com.mancel01.thetreeof.api.Store;
 import com.mancel01.thetreeof.file.FilePersistenceProvider;
 import com.mancel01.thetreeof.model.Leaf;
 import com.mancel01.thetreeof.model.Node;
 import com.mancel01.thetreeof.task.TaskExecutor;
-import com.mancel01.thetreeof.util.Configuration;
-import com.mancel01.thetreeof.util.F;
 import com.mancel01.thetreeof.util.F.Option;
-import com.mancel01.thetreeof.util.Promise;
-import com.mancel01.thetreeof.util.Registry;
-import com.mancel01.thetreeof.util.SimpleLogger;
+import com.mancel01.thetreeof.util.*;
 import java.io.File;
 import java.util.Collection;
-import java.util.concurrent.ExecutionException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class Tree implements Persistable<Tree> {
     
@@ -24,7 +18,7 @@ public class Tree implements Persistable<Tree> {
     
     private Node root;
     private final File rootFile;
-    private final Configuration config;
+    private final Store config;
     private Registry registry;
     private TaskExecutor exec;
     
@@ -34,36 +28,45 @@ public class Tree implements Persistable<Tree> {
     }
     
     public Tree() {
-        this.config = new Configuration("config.properties");
+        this.config = new FileStore("config.properties");
         this.rootFile = new File(config.get("root").getOrElse("./repo"));
         init(new FilePersistenceProvider(rootFile));
     }
     
     public Tree(PersistenceProvider provider) {
-        this.config = new Configuration("config.properties");
+        assert provider != null;
+        this.config = new FileStore("config.properties");
         this.rootFile = new File(config.get("root").getOrElse("./repo"));
         init(provider);
     }
     
     public Tree(File rootFile, String config, PersistenceProvider provider) {
-        this.config = new Configuration(config);
+        assert provider != null;
+        assert config != null;
+        assert rootFile != null;
+        this.config = new FileStore(config);
         this.rootFile = rootFile;
         init(provider);
     }
     
     public Tree(File rootFile, String config) {
-        this.config = new Configuration(config);
+        assert config != null;
+        assert rootFile != null;
+        this.config = new FileStore(config);
         this.rootFile = rootFile;
         init(new FilePersistenceProvider(rootFile));
     }
     
-    public Tree(Configuration configuration) {
+    public Tree(Store configuration) {
+        assert configuration != null;
         this.config = configuration;
         this.rootFile = new File(config.get("root").getOrElse("./repo"));
         init(new FilePersistenceProvider(rootFile));
     }
     
-    public Tree(Configuration configuration, PersistenceProvider provider) {
+    public Tree(Store configuration, PersistenceProvider provider) {
+        assert configuration != null;
+        assert provider != null;
         this.config = configuration;
         this.rootFile = new File(config.get("root").getOrElse("./repo"));
         init(provider);
@@ -88,10 +91,11 @@ public class Tree implements Persistable<Tree> {
     }
     
     private void init(PersistenceProvider provider) {
+        assert provider != null;
         this.root = new Node(this, "root");
         registry = new Registry();
         registry.register(PersistenceProvider.class, provider);
-        exec = new TaskExecutor();
+        exec = new TaskExecutor(registry);
         TaskExecutor.startTaskExecutor(exec);
         registry.register(TaskExecutor.class, exec);
         save();
@@ -137,6 +141,7 @@ public class Tree implements Persistable<Tree> {
     }
     
     public Option<Node> selectNode(String expression) {
+        assert expression != null;
         Collection<Node> nodes = allNodes();
         for (Node node : nodes) {
             if (node.getFullName().toLowerCase().equals(expression.toLowerCase())) {
@@ -147,6 +152,7 @@ public class Tree implements Persistable<Tree> {
     }
     
     public Option<Leaf> selectLeaf(String expression) {
+        assert expression != null;
         Collection<Leaf> leafs = allLeafs();
         for (Leaf leaf : leafs) {
             if (leaf.getFullName().toLowerCase().equals(expression.toLowerCase())) {
@@ -185,7 +191,5 @@ public class Tree implements Persistable<Tree> {
     // TODO : Security provider
     // TODO : finish crud methods
     // TODO : add search methods
-    // TODO : Store intead of Configuration, then implems
     // TODO : method update with message in node/leaf
-    // TODO : task listener
 }

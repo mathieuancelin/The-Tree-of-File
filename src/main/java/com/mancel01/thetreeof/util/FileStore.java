@@ -1,7 +1,7 @@
 package com.mancel01.thetreeof.util;
 
 import com.google.common.io.Files;
-import com.mancel01.thetreeof.api.Persistable;
+import com.mancel01.thetreeof.api.Store;
 import com.mancel01.thetreeof.util.F.ExceptionWrapper;
 import com.mancel01.thetreeof.util.F.Option;
 import java.io.File;
@@ -10,12 +10,12 @@ import java.io.Reader;
 import java.nio.charset.Charset;
 import java.util.Properties;
 
-public class Configuration {
+public class FileStore implements Store {
     
     private final String path;
     private Properties props;
 
-    public Configuration(String path) {
+    public FileStore(String path) {
         this.path = path;
         try {
             Reader reader = Files.newReader(new File(path), Charset.forName("utf-8"));
@@ -26,6 +26,7 @@ public class Configuration {
         }
     }
 
+    @Override
     public void persist() {
         if (props != null) {
             try {
@@ -36,6 +37,7 @@ public class Configuration {
         }
     }
     
+    @Override
     public Option<String> get(String name) {
         if (props != null) {
             return Option.maybe(props.getProperty(name));
@@ -43,6 +45,7 @@ public class Configuration {
         return Option.none();
     }
     
+    @Override
     public boolean containsKey(String name) {
         if (props != null) {
             return props.containsKey(name);
@@ -50,12 +53,14 @@ public class Configuration {
         return false;
     }
     
+    @Override
     public void remove(String name) {
         if (props != null) {
             props.remove(name);
         }
     }
     
+    @Override
     public Option<String> set(String name, String value) {
         if (props != null) {
             String ret = (String) props.put(name, value);

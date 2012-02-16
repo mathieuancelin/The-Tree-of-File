@@ -10,10 +10,12 @@ public class FileBlob implements Blob {
     private final File file;
 
     public FileBlob(File file) {
+        assert file != null;
         this.file = file;
     }
     
     public FileBlob(String file) {
+        assert file != null;
         this.file = new File(file);
     }
 
