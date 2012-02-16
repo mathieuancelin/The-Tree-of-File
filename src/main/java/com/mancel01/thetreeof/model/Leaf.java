@@ -2,6 +2,7 @@ package com.mancel01.thetreeof.model;
 
 import com.mancel01.thetreeof.Tree;
 import com.mancel01.thetreeof.api.*;
+import com.mancel01.thetreeof.blob.EmptyBlob;
 import com.mancel01.thetreeof.task.TaskExecutor;
 import java.util.Collection;
 import java.util.Collections;
@@ -157,26 +158,14 @@ public class Leaf implements Persistable, Visitable<Leaf> {
         for (PersistenceProvider provider : tree.reg().optional(PersistenceProvider.class)) {
             return provider.getBlob(getBlobId());
         }
-        return new Blob() {
-
-            @Override
-            public byte[] bytes() {
-                return new byte[0];
-            }
-        };
+        return EmptyBlob.INSTANCE;
     }
     
     public Blob getBlob(long version) {
         for (PersistenceProvider provider : tree.reg().optional(PersistenceProvider.class)) {
             return provider.getBlob(getBlobId(version));
         }
-        return new Blob() {
-
-            @Override
-            public byte[] bytes() {
-                return new byte[0];
-            }
-        };
+        return EmptyBlob.INSTANCE;
     }
 
     public String getBlobId() {
@@ -264,13 +253,7 @@ public class Leaf implements Persistable, Visitable<Leaf> {
         
         public LeafCreator(String name) {
             this.name = name;
-            this.bytes = new Blob() {
-
-                @Override
-                public byte[] bytes() {
-                    return new byte[0];
-                }
-            };
+            this.bytes = EmptyBlob.INSTANCE;
         }
         
         @Override
