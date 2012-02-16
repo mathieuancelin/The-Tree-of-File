@@ -7,13 +7,18 @@ import com.mancel01.thetreeof.model.Leaf;
 import com.mancel01.thetreeof.model.Node;
 import com.mancel01.thetreeof.task.TaskExecutor;
 import com.mancel01.thetreeof.util.Configuration;
+import com.mancel01.thetreeof.util.F;
 import com.mancel01.thetreeof.util.F.Option;
+import com.mancel01.thetreeof.util.Promise;
 import com.mancel01.thetreeof.util.Registry;
 import com.mancel01.thetreeof.util.SimpleLogger;
 import java.io.File;
 import java.util.Collection;
+import java.util.concurrent.ExecutionException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-public class Tree implements Persistable {
+public class Tree implements Persistable<Tree> {
     
     public static final String PATH_SEPARATOR = "/";
     
@@ -31,19 +36,37 @@ public class Tree implements Persistable {
     public Tree() {
         this.config = new Configuration("config.properties");
         this.rootFile = new File(config.get("root").getOrElse("./repo"));
-        init();
+        init(new FilePersistenceProvider(rootFile));
+    }
+    
+    public Tree(PersistenceProvider provider) {
+        this.config = new Configuration("config.properties");
+        this.rootFile = new File(config.get("root").getOrElse("./repo"));
+        init(provider);
+    }
+    
+    public Tree(File rootFile, String config, PersistenceProvider provider) {
+        this.config = new Configuration(config);
+        this.rootFile = rootFile;
+        init(provider);
     }
     
     public Tree(File rootFile, String config) {
         this.config = new Configuration(config);
         this.rootFile = rootFile;
-        init();
+        init(new FilePersistenceProvider(rootFile));
     }
     
     public Tree(Configuration configuration) {
         this.config = configuration;
         this.rootFile = new File(config.get("root").getOrElse("./repo"));
-        init();
+        init(new FilePersistenceProvider(rootFile));
+    }
+    
+    public Tree(Configuration configuration, PersistenceProvider provider) {
+        this.config = configuration;
+        this.rootFile = new File(config.get("root").getOrElse("./repo"));
+        init(provider);
     }
     
     public void waitAndStop() {
@@ -63,21 +86,32 @@ public class Tree implements Persistable {
         }
     }
     
-    public void init() {
+    private void init(PersistenceProvider provider) {
         this.root = new Node(this, "root");
         registry = new Registry();
-        registry.register(PersistenceProvider.class, new FilePersistenceProvider(rootFile));
+        registry.register(PersistenceProvider.class, provider);
         exec = new TaskExecutor();
         TaskExecutor.startTaskExecutor(exec);
         registry.register(TaskExecutor.class, exec);
     }
     
     @Override
-    public void persist() {
-        root.persist();
+    public Promise<Tree> persist() {
+        final Promise<Tree> promise = new Promise<Tree>();
         for (PersistenceProvider provider : registry.optional(PersistenceProvider.class)) {
             provider.createBlobStore();
         }
+        Promise<Node> node = root.persist();
+        node.onRedeem(new F.Action<Promise<Node>>() {
+
+            @Override
+            public void apply(Promise<Node> t) {
+                try {
+                    promise.apply(t.get().tree());
+                } catch (Exception ex) {}
+            }
+        });
+        return promise;
     }
     
     public File rootFile() {

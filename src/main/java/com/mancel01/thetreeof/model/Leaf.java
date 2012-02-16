@@ -4,6 +4,7 @@ import com.mancel01.thetreeof.Tree;
 import com.mancel01.thetreeof.api.*;
 import com.mancel01.thetreeof.blob.EmptyBlob;
 import com.mancel01.thetreeof.task.TaskExecutor;
+import com.mancel01.thetreeof.util.Promise;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -11,7 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public class Leaf implements Persistable, Visitable<Leaf> {
+public class Leaf implements Persistable<Leaf>, Visitable<Leaf> {
     
     public static final String META_FILE_NAME = "metadata.properties";
     
@@ -31,6 +32,11 @@ public class Leaf implements Persistable, Visitable<Leaf> {
     private final Tree tree;
     
     public Leaf(Tree tree, String name, Node parent, final Blob payload) {
+        assert tree != null;
+        assert parent != null;
+        assert payload != null;
+        assert name != null;
+        assert name.indexOf("/") == -1;
         this.name = name;
         this.tree = tree;
         this.fullName = parent.getFullName() + Tree.PATH_SEPARATOR + name;
@@ -58,6 +64,7 @@ public class Leaf implements Persistable, Visitable<Leaf> {
     private long updateAndIncreaseVersion(String newBlodId) {
         currentVersion++;
         versions.put(currentVersion, newBlodId);
+        persist();
         return currentVersion;
     }
 
@@ -198,13 +205,15 @@ public class Leaf implements Persistable, Visitable<Leaf> {
     }
     
     @Override
-    public void persist() {
+    public Promise<Leaf> persist() {
+        final Promise<Leaf> promise = new Promise<Leaf>();
         for (TaskExecutor exec : tree.reg().optional(TaskExecutor.class)) {
             exec.addTask(new Task() {
                 @Override
                 public void apply() {
                     for (PersistenceProvider provider : tree.reg().optional(PersistenceProvider.class)) {
                         provider.persistLeaf(me());
+                        promise.apply(me());
                     }
                 }
 
@@ -213,7 +222,9 @@ public class Leaf implements Persistable, Visitable<Leaf> {
                     return "Create Leaf path and metadata for " + uuid;
                 }
             });
+            return promise;
         }
+        throw new RuntimeException("Should never append");
     }
 
     @Override

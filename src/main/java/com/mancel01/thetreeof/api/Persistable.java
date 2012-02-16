@@ -1,5 +1,7 @@
 package com.mancel01.thetreeof.api;
 
-public interface Persistable {
-    void persist();
+import com.mancel01.thetreeof.util.Promise;
+
+public interface Persistable<T> {
+    Promise<T> persist();
 }

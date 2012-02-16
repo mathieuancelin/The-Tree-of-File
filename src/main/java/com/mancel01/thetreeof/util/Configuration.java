@@ -10,7 +10,7 @@ import java.io.Reader;
 import java.nio.charset.Charset;
 import java.util.Properties;
 
-public class Configuration implements Persistable {
+public class Configuration {
     
     private final String path;
     private Properties props;
@@ -26,7 +26,6 @@ public class Configuration implements Persistable {
         }
     }
 
-    @Override
     public void persist() {
         if (props != null) {
             try {

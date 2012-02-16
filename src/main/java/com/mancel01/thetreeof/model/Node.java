@@ -4,10 +4,11 @@ import com.mancel01.thetreeof.Tree;
 import com.mancel01.thetreeof.api.*;
 import com.mancel01.thetreeof.model.Leaf.LeafCreator;
 import com.mancel01.thetreeof.task.TaskExecutor;
+import com.mancel01.thetreeof.util.Promise;
 import com.mancel01.thetreeof.util.SimpleLogger;
 import java.util.*;
 
-public class Node implements Persistable, Visitable<Node> {
+public class Node implements Persistable<Node>, Visitable<Node> {
     
     private final String uuid = UUID.randomUUID().toString();
     private String name;
@@ -19,6 +20,9 @@ public class Node implements Persistable, Visitable<Node> {
     private final Tree tree;
     
     public Node(Tree tree, String name) {
+        assert tree != null;
+        assert name != null;
+        assert name.indexOf("/") == -1;
         this.tree = tree;
         this.parent = null;
         this.name = name;
@@ -27,6 +31,10 @@ public class Node implements Persistable, Visitable<Node> {
     }
 
     public Node(Tree tree, String name, Node parent) {
+        assert tree != null;
+        assert name != null;
+        assert name.indexOf("/") == -1;
+        assert parent != null;
         this.tree = tree;
         this.parent = parent;
         this.name = name;
@@ -43,7 +51,8 @@ public class Node implements Persistable, Visitable<Node> {
     }
     
     @Override
-    public void persist() {
+    public Promise<Node> persist() {
+        final Promise<Node> promise = new Promise<Node>();
         for (TaskExecutor exec : tree.reg().optional(TaskExecutor.class)) {
             exec.addTask(new Task() {
                 @Override
@@ -51,6 +60,7 @@ public class Node implements Persistable, Visitable<Node> {
                     for (PersistenceProvider provider : tree.reg().optional(PersistenceProvider.class)) {
                         provider.persistNode(me());
                     }
+                    promise.apply(me());
                 }
 
                 @Override
@@ -58,7 +68,9 @@ public class Node implements Persistable, Visitable<Node> {
                     return "Persist initial for Node " + uuid;
                 }
             });
+            return promise;
         }
+        throw new RuntimeException("Should never happen");
     }
     
     public Node addLeaf(Leaf leaf) {
