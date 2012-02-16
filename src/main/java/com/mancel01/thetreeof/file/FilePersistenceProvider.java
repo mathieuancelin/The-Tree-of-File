@@ -12,7 +12,10 @@ import com.mancel01.thetreeof.util.F;
 import com.mancel01.thetreeof.util.SimpleLogger;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.Map.Entry;
 
 public class FilePersistenceProvider implements PersistenceProvider {
     
@@ -73,11 +76,17 @@ public class FilePersistenceProvider implements PersistenceProvider {
             config.set("uuid", leaf.getUuid());
             config.set("name", leaf.getName());
             config.set("fullName", leaf.getFullName());
-            config.set("blobId", leaf.getBlobId());
+            //config.set("blobId", leaf.getBlobId());
             config.set("created", leaf.created().toString()); 
             config.set("changed", leaf.lastChanged().toString());
             config.set("parent", leaf.getParent().getFullName());
             config.set("metadata", Joiner.on(",").join(leaf.getMetadata()));
+            config.set("version", "" + leaf.getVersion());
+            List<String> versions = new ArrayList<String>();
+            for (Entry<Long, String> entry : leaf.getVersions().entrySet()) {
+                versions.add(entry.getKey() + ";" + entry.getValue());
+            }
+            config.set("versions", Joiner.on(",").join(versions));
             config.persist();
         } catch (IOException ex) {
             ex.printStackTrace();

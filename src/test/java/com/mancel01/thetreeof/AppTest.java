@@ -2,6 +2,7 @@ package com.mancel01.thetreeof;
 
 import com.google.common.io.Files;
 import com.mancel01.thetreeof.api.Blob;
+import com.mancel01.thetreeof.model.Leaf;
 import static com.mancel01.thetreeof.model.Leaf.leaf;
 import com.mancel01.thetreeof.model.Node;
 import static com.mancel01.thetreeof.model.Node.node;
@@ -58,6 +59,9 @@ public class AppTest {
             .addChildAndSelect(node("categ6"))
                 .back();
         tree.persist();
+        for (Leaf leaf : tree.selectLeaf("/Root/categ1/doc1") ) {
+            leaf.changeBlob(bytes);
+        }
         root.visit(new PrintVisitor());
         tree.waitAndStop();
         Tree tree2 = new Tree(new File("./repo2"), "dummy");

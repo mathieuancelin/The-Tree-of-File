@@ -23,8 +23,10 @@ public class Leaf implements Persistable, Visitable<Leaf> {
     private final Map<String, Metadata<String, String>> metadata = 
             new HashMap<String, Metadata<String, String>>();
     
-    private String blob;
+    private final Map<Long, String> versions = new HashMap<Long, String>();
     
+    private Long currentVersion = 0L; 
+        
     private final Tree tree;
     
     public Leaf(Tree tree, String name, Node parent, final Blob payload) {
@@ -33,13 +35,13 @@ public class Leaf implements Persistable, Visitable<Leaf> {
         this.fullName = parent.getFullName() + Tree.PATH_SEPARATOR + name;
         this.parent = parent;
         if (payload != null) {
-            blob = UUID.randomUUID().toString(); 
+            final long version = updateAndIncreaseVersion(UUID.randomUUID().toString()); 
             for (TaskExecutor exec : tree.reg().optional(TaskExecutor.class)) {
                 exec.addTask(new Task() {
                     @Override
                     public void apply() {
                         for (PersistenceProvider provider : me().tree.reg().optional(PersistenceProvider.class)) {
-                            provider.persistAsBlob(blob, payload);
+                            provider.persistAsBlob(getBlobId(version), payload);
                         }
                     }
 
@@ -51,19 +53,25 @@ public class Leaf implements Persistable, Visitable<Leaf> {
             }
         }
     }
+    
+    private long updateAndIncreaseVersion(String newBlodId) {
+        currentVersion++;
+        versions.put(currentVersion, newBlodId);
+        return currentVersion;
+    }
 
     public Tree tree() {
         return tree;
     }
 
     public void changeBlob(final Blob payload) {
-        blob = UUID.randomUUID().toString(); 
+        final long version = updateAndIncreaseVersion(UUID.randomUUID().toString()); 
         for (TaskExecutor exec : tree.reg().optional(TaskExecutor.class)) {
             exec.addTask(new Task() {
                 @Override
                 public void apply() {
                     for (PersistenceProvider provider : tree.reg().optional(PersistenceProvider.class)) {
-                        provider.persistAsBlob(blob, payload);
+                        provider.persistAsBlob(getBlobId(version), payload);
                     }
                 }
 
@@ -147,7 +155,20 @@ public class Leaf implements Persistable, Visitable<Leaf> {
 
     public Blob getBlob() {
         for (PersistenceProvider provider : tree.reg().optional(PersistenceProvider.class)) {
-            return provider.getBlob(blob);
+            return provider.getBlob(getBlobId());
+        }
+        return new Blob() {
+
+            @Override
+            public byte[] bytes() {
+                return new byte[0];
+            }
+        };
+    }
+    
+    public Blob getBlob(long version) {
+        for (PersistenceProvider provider : tree.reg().optional(PersistenceProvider.class)) {
+            return provider.getBlob(getBlobId(version));
         }
         return new Blob() {
 
@@ -159,7 +180,24 @@ public class Leaf implements Persistable, Visitable<Leaf> {
     }
 
     public String getBlobId() {
-        return blob;
+        return versions.get(currentVersion);
+    }
+    
+    public String getBlobId(long version) {
+        return versions.get(version);
+    }
+
+    public void changeVersion(long version) {
+        this.currentVersion = version;
+        persist();
+    }
+
+    public long getVersion() {
+        return currentVersion;
+    }
+
+    public Map<Long, String> getVersions() {
+        return versions;
     }
     
     public Leaf me() {

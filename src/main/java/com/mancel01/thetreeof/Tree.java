@@ -103,12 +103,23 @@ public class Tree implements Persistable {
     public Option<Node> selectNode(String expression) {
         Collection<Node> nodes = allNodes();
         for (Node node : nodes) {
-            if (node.getFullName().toLowerCase().equals(expression)) {
+            if (node.getFullName().toLowerCase().equals(expression.toLowerCase())) {
                 return Option.some(node);
             }
         }
         return Option.none();
     }
+    
+    public Option<Leaf> selectLeaf(String expression) {
+        Collection<Leaf> leafs = allLeafs();
+        for (Leaf leaf : leafs) {
+            if (leaf.getFullName().toLowerCase().equals(expression.toLowerCase())) {
+                return Option.some(leaf);
+            }
+        }
+        return Option.none();
+    }
+
 
 //    
 //    private static final Holder<Tree> HOLDER = TreeHolder.INSTANCE;
@@ -138,4 +149,7 @@ public class Tree implements Persistable {
     // TODO : Security provider
     // TODO : finish crud methods
     // TODO : add search methods
+    // TODO : Store intead of Configuration, then implems
+    // TODO : method update with message in node/leaf
+    // TODO : task listener
 }

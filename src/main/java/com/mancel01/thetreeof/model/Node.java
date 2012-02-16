@@ -176,10 +176,10 @@ public class Node implements Persistable, Visitable<Node> {
         return name;
     }
 
-    public Node setName(String name) {
+    /**public Node setName(String name) {
         this.name = name;
         return this;
-    }
+    }**/
 
     public String getFullName() {
         return fullName;
