@@ -2,6 +2,7 @@ package com.mancel01.thetreeof;
 
 import com.google.common.io.Files;
 import com.mancel01.thetreeof.api.Blob;
+import com.mancel01.thetreeof.blob.FileBlob;
 import com.mancel01.thetreeof.model.Leaf;
 import static com.mancel01.thetreeof.model.Leaf.leaf;
 import com.mancel01.thetreeof.model.Node;
@@ -17,13 +18,7 @@ public class AppTest {
     public void testApp() throws Exception {
         Tree tree = new Tree(new File("./repo1"), "dummy");
         Node root = tree.root();
-        final byte[] b = Files.toByteArray(new File("pom.xml"));
-        Blob bytes = new Blob() {
-            @Override
-            public byte[] bytes() {
-                return b;
-            }
-        };
+        Blob bytes = new FileBlob("pom.xml");
         root.addChildAndSelect(node("categ1"))
                     .addLeafAndSelect(leaf("doc1", bytes))
                             .addMetadata("key1", "value1")
